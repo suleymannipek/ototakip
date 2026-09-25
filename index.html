@@ -35,7 +35,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swScript = `
-          const CACHE_NAME = 'ototakip-offline-v4';
+          const CACHE_NAME = 'ototakip-offline-v5';
           const ASSETS = [
             './',
             './index.html',
@@ -123,7 +123,7 @@
     html { 
       background-color: var(--bg-main); 
       transition: background-color 0.25s ease;
-      font-size: 14px; /* Mobil odaklı kompakt ana ölçek */
+      font-size: 14px;
     }
     body {
       background-color: var(--bg-main);
@@ -148,7 +148,7 @@
 </head>
 <body class="min-h-screen">
 
-  <!-- Header (Daha İnce & Kompakt) -->
+  <!-- Header -->
   <header class="sticky top-0 z-30 backdrop-blur-md border-b px-3 py-2 flex justify-between items-center shadow-md">
     <div class="flex items-center gap-2 min-w-0">
       <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-base shadow flex-shrink-0">🚗</div>
@@ -176,8 +176,48 @@
     </div>
   </header>
 
-  <!-- Ana Alan (Mobil Ekran Genişliğine Tam Oturan Düzen) -->
+  <!-- Ana Alan -->
   <main class="max-w-md mx-auto p-2.5 space-y-3">
+
+    <!-- GENEL HATIRLATICI & YILLIK TAKVİM KARTI (TÜM SEKMEDE ERİŞİLEBİLİR / ÖZET) -->
+    <div class="custom-card p-3 rounded-xl shadow border-cyan-800/40 space-y-2">
+      <div class="flex justify-between items-center border-b border-slate-700/40 pb-1.5">
+        <span class="text-xs font-bold flex items-center gap-1.5 text-cyan-400">
+          <span>🔔</span> Bakım & Yükümlülük Hatırlatıcıları
+        </span>
+        <span class="text-[10px] custom-muted font-medium">Akıllı Takvim</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-[11px]">
+        <!-- Periyodik Bakım (1 Yıl / 20.000 KM) -->
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+          <div class="text-[10px] font-bold text-blue-400">🛠️ Periyodik Bakım</div>
+          <div id="remMaintenanceText" class="font-extrabold mt-1 text-emerald-400">Hesaplanıyor...</div>
+          <div id="remMaintenanceSub" class="text-[9px] custom-muted mt-0.5">1 Yıl / 20.000 KM</div>
+        </div>
+
+        <!-- MTV Takvim Sayacı -->
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+          <div class="text-[10px] font-bold text-amber-400">🏛️ MTV Taksiti</div>
+          <div id="remMtvText" class="font-extrabold mt-1 text-amber-300">Hesaplanıyor...</div>
+          <div id="remMtvSub" class="text-[9px] custom-muted mt-0.5">Ocak & Temmuz Vadesi</div>
+        </div>
+
+        <!-- Kasko Yenileme -->
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+          <div class="text-[10px] font-bold text-purple-400">🛡️ Kasko Poliçesi</div>
+          <div id="remKaskoText" class="font-extrabold mt-1 text-purple-300">Hesaplanıyor...</div>
+          <div id="remKaskoSub" class="text-[9px] custom-muted mt-0.5">Yıllık Yenileme</div>
+        </div>
+
+        <!-- Sigorta / Muayene -->
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+          <div class="text-[10px] font-bold text-rose-400">📑 Trafik / Muayene</div>
+          <div id="remSigortaText" class="font-extrabold mt-1 text-slate-200">Hesaplanıyor...</div>
+          <div id="remSigortaSub" class="text-[9px] custom-muted mt-0.5">Yasal Geçerlilik</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 1. SEKME: ÖZET & AY ANALİZLERİ -->
     <div id="tabDashboard" class="space-y-3">
@@ -226,7 +266,7 @@
 
         <div class="custom-card p-3 rounded-xl shadow relative">
           <div class="flex justify-between items-start">
-            <span class="text-[9px] font-bold custom-muted uppercase tracking-wider">TOPLAM SAHİPLİK</span>
+            <span class="text-[9px] font-bold custom-muted uppercase tracking-wider">TOPLAM GİDERLER</span>
             <span class="w-5 h-5 rounded-full bg-purple-950/60 text-purple-400 flex items-center justify-center text-[10px]">$</span>
           </div>
           <div class="mt-1">
@@ -241,7 +281,7 @@
         <div>
           <span class="text-[9px] font-bold uppercase tracking-wider text-blue-400">YILLIK SABİT GİDER</span>
           <div id="statFixedExpense" class="text-sm font-extrabold mt-0.5">₺0</div>
-          <span class="text-[9px] custom-muted">MTV, Kasko, Sigorta, TÜVTÜRK</span>
+          <span class="text-[9px] custom-muted">MTV, Kasko, Sigorta, Muayene</span>
         </div>
         <div class="text-right">
           <span class="text-[9px] font-bold uppercase tracking-wider text-amber-400">DEĞİŞKEN GİDER</span>
@@ -315,7 +355,7 @@
       <div class="flex justify-between items-center mb-0.5">
         <div>
           <h3 class="text-xs font-bold">Bakım, Sigorta & MTV</h3>
-          <p id="mtvReminderBadge" class="text-[10px] text-amber-500 font-semibold"></p>
+          <p class="text-[10px] text-cyan-400 font-medium">Tüm Rutin & Sabit Giderler</p>
         </div>
         <button onclick="openExpenseModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow">
           <span>+</span> Gider Ekle
@@ -368,7 +408,7 @@
           </div>
         </div>
 
-        <!-- Kroki (Kompakt Mobil Düzen) -->
+        <!-- Kroki -->
         <div class="relative max-w-[240px] mx-auto py-2">
           <div class="w-28 h-48 mx-auto rounded-2xl border border-dashed border-slate-700/60 flex flex-col items-center justify-between py-2.5 bg-slate-900/30">
             <span class="text-[9px] custom-muted font-bold tracking-wider uppercase">ÖN KAPUT</span>
@@ -559,15 +599,15 @@
           <div>
             <label class="custom-muted text-[10px]">Kategori</label>
             <select id="eType" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none">
-              <option value="Periyodik Bakım">Periyodik Bakım (Değişken)</option>
+              <option value="Periyodik Bakım">Periyodik Bakım (1 Yıl / 20.000 KM)</option>
               <option value="Lastik Tamir / Değişim">Lastik Tamir / Değişim (Değişken)</option>
               <option value="MTV (1. Taksit - Ocak)">MTV (1. Taksit - Ocak) (Sabit)</option>
               <option value="MTV (2. Taksit - Temmuz)">MTV (2. Taksit - Temmuz) (Sabit)</option>
-              <option value="Kasko">Kasko (Sabit)</option>
-              <option value="Trafik Sigortası">Trafik Sigortası (Sabit)</option>
-              <option value="TÜVTÜRK Muayene">TÜVTÜRK Muayene (Sabit)</option>
+              <option value="Kasko">Kasko Poliçesi (Sabit / 1 Yıl)</option>
+              <option value="Trafik Sigortası">Trafik Sigortası (Sabit / 1 Yıl)</option>
+              <option value="TÜVTÜRK Muayene">TÜVTÜRK Muayene (Sabit / 2 Yıl)</option>
               <option value="Oto Yıkama & Temizlik">Oto Yıkama & Temizlik (Değişken)</option>
-              <option value="Diğer">Diğer</option>
+              <option value="Diğer">Diğer Masraf</option>
             </select>
           </div>
         </div>
@@ -577,7 +617,7 @@
         </div>
         <div>
           <label class="custom-muted text-[10px]">Açıklama</label>
-          <input type="text" id="eDesc" placeholder="örn: Yağ ve filtre bakımı" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" />
+          <input type="text" id="eDesc" placeholder="örn: Yetkili servis yağ ve filtre bakımı" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" />
         </div>
 
         <div>
@@ -644,7 +684,7 @@
     </div>
   </div>
 
-  <!-- ALT NAVİGASYON (Daha Kompakt & Kibar) -->
+  <!-- ALT NAVİGASYON -->
   <nav class="fixed bottom-0 left-0 w-full backdrop-blur-xl border-t z-40 pb-1.5">
     <div class="flex justify-around items-center max-w-md mx-auto pt-1.5">
       <button onclick="switchTab('dashboard')" id="navDashboard" class="flex flex-col items-center py-1 px-2.5 rounded-xl bg-blue-600/20 text-cyan-500 font-bold">
@@ -718,16 +758,16 @@
     ];
 
     const sampleExpenses = [
-      { id: "e25_1", date: "2025-01-20", type: "MTV (1. Taksit - Ocak)", amount: 2450, desc: "2025 1. taksit ödendi" },
+      { id: "e25_1", date: "2025-01-20", type: "MTV (1. Taksit - Ocak)", amount: 2450, desc: "2025 1. taksit" },
       { id: "e25_2", date: "2025-04-25", type: "Periyodik Bakım", amount: 6200, desc: "İlk periyodik bakım" },
       { id: "e25_3", date: "2025-06-10", type: "Kasko", amount: 12500, desc: "2025 kasko" },
-      { id: "e25_4", date: "2025-07-15", type: "MTV (2. Taksit - Temmuz)", amount: 2450, desc: "2025 2. taksit ödendi" },
-      { id: "e25_5", date: "2025-09-12", type: "Lastik Tamir / Değişim", amount: 200, desc: "Sağ ön fitil yama" },
-      { id: "e26_1", date: "2026-01-22", type: "MTV (1. Taksit - Ocak)", amount: 3100, desc: "2026 1. taksit ödendi" },
-      { id: "e26_2", date: "2026-05-15", type: "Periyodik Bakım", amount: 7900, desc: "10.000 KM bakımı" },
+      { id: "e25_4", date: "2025-07-15", type: "MTV (2. Taksit - Temmuz)", amount: 2450, desc: "2025 2. taksit" },
+      { id: "e25_5", date: "2025-09-12", type: "Lastik Tamir / Değişim", amount: 200, desc: "Sağ ön fitil" },
+      { id: "e26_1", date: "2026-01-22", type: "MTV (1. Taksit - Ocak)", amount: 3100, desc: "2026 1. taksit" },
+      { id: "e26_2", date: "2026-05-15", type: "Periyodik Bakım", amount: 7900, desc: "Yıllık bakım (9.000 KM)" },
       { id: "e26_3", date: "2026-06-12", type: "Kasko", amount: 15400, desc: "2026 kasko" },
       { id: "e26_4", date: "2026-06-12", type: "Trafik Sigortası", amount: 4100, desc: "Zorunlu trafik" },
-      { id: "e26_5", date: "2026-07-20", type: "MTV (2. Taksit - Temmuz)", amount: 3100, desc: "2026 2. taksit ödendi" },
+      { id: "e26_5", date: "2026-07-20", type: "MTV (2. Taksit - Temmuz)", amount: 3100, desc: "2026 2. taksit" },
       { id: "e26_6", date: "2026-08-10", type: "Lastik Tamir / Değişim", amount: 300, desc: "Sol arka sibop" }
     ];
 
@@ -959,6 +999,113 @@
       });
     }
 
+    // 8. AKILLI HATIRLATICI HESAPLAMA MOTORU (1 Yıl / 20.000 KM & Vadeler)
+    function calculateSmartReminders() {
+      const now = new Date();
+      const currentKm = fuels.length > 0 ? Math.max(...fuels.map(f => f.km)) : 0;
+
+      // 1. Periyodik Bakım (1 Yıl veya 20.000 KM)
+      const maintenanceLogs = expenses.filter(e => e.type === "Periyodik Bakım").sort((a,b) => new Date(b.date) - new Date(a.date));
+      const mText = document.getElementById("remMaintenanceText");
+      const mSub = document.getElementById("remMaintenanceSub");
+
+      if (maintenanceLogs.length > 0) {
+        const lastM = maintenanceLogs[0];
+        const lastMDate = new Date(lastM.date);
+        
+        // Bakım günündeki tahmini veya en yakın KM'yi bul
+        const nearbyFuel = fuels.filter(f => f.date <= lastM.date).sort((a,b) => new Date(b.date) - new Date(a.date));
+        const lastMKm = nearbyFuel.length > 0 ? nearbyFuel[0].km : (fuels.length > 0 ? fuels[0].km : 0);
+
+        const targetDate = new Date(lastMDate);
+        targetDate.setDate(targetDate.getDate() + 365);
+        const daysLeft = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24));
+
+        const targetKm = lastMKm + 20000;
+        const kmLeft = Math.max(0, targetKm - currentKm);
+
+        if (daysLeft <= 0 || kmLeft <= 0) {
+          mText.innerText = "⚠️ Bakım Geldi!";
+          mText.className = "font-extrabold mt-1 text-rose-500 animate-pulse";
+          mSub.innerText = `${daysLeft <= 0 ? 'Süre doldu' : '20.000 KM aşıldı'}`;
+        } else {
+          mText.innerText = `${daysLeft} gün kaldı`;
+          mText.className = daysLeft < 30 ? "font-extrabold mt-1 text-amber-400" : "font-extrabold mt-1 text-emerald-400";
+          mSub.innerText = `Kalan: ${kmLeft.toLocaleString('tr-TR')} km`;
+        }
+      } else {
+        mText.innerText = "Kayıt Yok";
+        mText.className = "font-extrabold mt-1 text-slate-400";
+        mSub.innerText = "İlk bakımı girin";
+      }
+
+      // 2. MTV Hesaplama (31 Ocak & 31 Temmuz)
+      const year = now.getFullYear();
+      const jan31 = new Date(year, 0, 31);
+      const jul31 = new Date(year, 6, 31);
+      let targetMtv, labelMtv;
+
+      if (now <= jan31) { targetMtv = jan31; labelMtv = "1. Taksit (Ocak)"; }
+      else if (now <= jul31) { targetMtv = jul31; labelMtv = "2. Taksit (Temmuz)"; }
+      else { targetMtv = new Date(year + 1, 0, 31); labelMtv = "1. Taksit (Yeni Yıl)"; }
+
+      const mtvDays = Math.ceil((targetMtv - now) / (1000 * 60 * 60 * 24));
+      document.getElementById("remMtvText").innerText = `${mtvDays} gün kaldı`;
+      document.getElementById("remMtvSub").innerText = labelMtv;
+
+      // 3. Kasko Poliçesi (365 Gün)
+      const kaskoLogs = expenses.filter(e => e.type === "Kasko").sort((a,b) => new Date(b.date) - new Date(a.date));
+      const kText = document.getElementById("remKaskoText");
+      const kSub = document.getElementById("remKaskoSub");
+
+      if (kaskoLogs.length > 0) {
+        const lastKDate = new Date(kaskoLogs[0].date);
+        const kExpiry = new Date(lastKDate);
+        kExpiry.setDate(kExpiry.getDate() + 365);
+        const kDays = Math.ceil((kExpiry - now) / (1000 * 60 * 60 * 24));
+
+        if (kDays <= 0) {
+          kText.innerText = "Bitti / Yenileyin";
+          kText.className = "font-extrabold mt-1 text-rose-500 animate-pulse";
+        } else {
+          kText.innerText = `${kDays} gün kaldı`;
+          kText.className = kDays <= 30 ? "font-extrabold mt-1 text-amber-400" : "font-extrabold mt-1 text-purple-300";
+        }
+        kSub.innerText = `Son poliçe: ${kaskoLogs[0].date}`;
+      } else {
+        kText.innerText = "Kayıt Yok";
+        kText.className = "font-extrabold mt-1 text-slate-400";
+        kSub.innerText = "Poliçe ekleyin";
+      }
+
+      // 4. Trafik Sigortası veya Muayene
+      const sigortaLogs = expenses.filter(e => e.type === "Trafik Sigortası" || e.type === "TÜVTÜRK Muayene").sort((a,b) => new Date(b.date) - new Date(a.date));
+      const sText = document.getElementById("remSigortaText");
+      const sSub = document.getElementById("remSigortaSub");
+
+      if (sigortaLogs.length > 0) {
+        const lastS = sigortaLogs[0];
+        const lastSDate = new Date(lastS.date);
+        const addDays = lastS.type.includes("Muayene") ? 730 : 365;
+        const sExpiry = new Date(lastSDate);
+        sExpiry.setDate(sExpiry.getDate() + addDays);
+        const sDays = Math.ceil((sExpiry - now) / (1000 * 60 * 60 * 24));
+
+        if (sDays <= 0) {
+          sText.innerText = "Süresi Doldu!";
+          sText.className = "font-extrabold mt-1 text-rose-500 animate-pulse";
+        } else {
+          sText.innerText = `${sDays} gün kaldı`;
+          sText.className = sDays <= 30 ? "font-extrabold mt-1 text-amber-400" : "font-extrabold mt-1 text-slate-200";
+        }
+        sSub.innerText = `${lastS.type.split(" ")[0]} (${lastS.date})`;
+      } else {
+        sText.innerText = "Kayıt Yok";
+        sText.className = "font-extrabold mt-1 text-slate-400";
+        sSub.innerText = "Poliçe / Muayene girin";
+      }
+    }
+
     let priceChart = null;
     let monthlyKmChart = null;
     let monthlyFuelChart = null;
@@ -1108,7 +1255,7 @@
       for (let i = 0; i < sortedMonths.length; i++) {
         const m = sortedMonths[i];
         const item = monthlyMap[m];
-        labels.push(m.substring(5)); // Sadece ayı göster (örn: 04, 05) kompakt olması için
+        labels.push(m.substring(5));
         costData.push(Math.round(item.total));
         let diff = item.maxKm - item.minKm;
         if (diff === 0 && i > 0) {
@@ -1182,7 +1329,7 @@
       renderExpenseCards();
       renderTiresUI();
       renderCharts(calcFuels);
-      checkMTV();
+      calculateSmartReminders();
     }
 
     function renderFuelCards(calcFuels) {
@@ -1517,22 +1664,6 @@
       const activeBtn = document.getElementById("nav" + tab.charAt(0).toUpperCase() + tab.slice(1));
       if (activeEl) activeEl.classList.remove("hidden");
       if (activeBtn) activeBtn.className = "flex flex-col items-center py-1 px-2.5 rounded-xl bg-blue-600/20 text-cyan-500 font-bold";
-    }
-
-    function checkMTV() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const jan31 = new Date(year, 0, 31);
-      const jul31 = new Date(year, 6, 31);
-      let target, label;
-
-      if (now <= jan31) { target = jan31; label = "MTV 1. Taksit"; }
-      else if (now <= jul31) { target = jul31; label = "MTV 2. Taksit"; }
-      else { target = new Date(year + 1, 0, 31); label = "Yeni Yıl MTV"; }
-
-      const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
-      const el = document.getElementById("mtvReminderBadge");
-      if (el) el.innerText = `📅 ${label}: ${diff} gün kaldı`;
     }
 
     function exportJSON() {
