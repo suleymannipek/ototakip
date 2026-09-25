@@ -35,7 +35,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swScript = `
-          const CACHE_NAME = 'ototakip-offline-v5';
+          const CACHE_NAME = 'ototakip-offline-v6';
           const ASSETS = [
             './',
             './index.html',
@@ -162,6 +162,11 @@
     </div>
     
     <div class="flex items-center gap-1.5 flex-shrink-0">
+      <!-- Bağımsız KM Giriş Butonu -->
+      <button onclick="openOdoModal()" title="Manuel KM Güncelle" class="h-7 px-2 rounded-lg bg-blue-600/20 border border-blue-500/40 text-cyan-400 flex items-center gap-1 text-[11px] font-bold">
+        <span>📍</span> <span id="headerOdoBadge">-- km</span>
+      </button>
+
       <select id="globalYearSelect" onchange="changeActiveYear(this.value)" class="text-[11px] font-bold py-1 px-1.5 rounded-lg custom-card border outline-none text-cyan-400">
       </select>
 
@@ -179,48 +184,82 @@
   <!-- Ana Alan -->
   <main class="max-w-md mx-auto p-2.5 space-y-3">
 
-    <!-- GENEL HATIRLATICI & YILLIK TAKVİM KARTI (TÜM SEKMEDE ERİŞİLEBİLİR / ÖZET) -->
-    <div class="custom-card p-3 rounded-xl shadow border-cyan-800/40 space-y-2">
-      <div class="flex justify-between items-center border-b border-slate-700/40 pb-1.5">
-        <span class="text-xs font-bold flex items-center gap-1.5 text-cyan-400">
-          <span>🔔</span> Bakım & Yükümlülük Hatırlatıcıları
-        </span>
-        <span class="text-[10px] custom-muted font-medium">Akıllı Takvim</span>
+    <!-- DİĞER SEKMELERDE ÇIKAN AÇILIR-KAPANIR İNCE ŞERİT -->
+    <div id="collapsibleReminderStrip" class="custom-card rounded-xl p-2.5 shadow cursor-pointer border-cyan-800/40 hidden" onclick="toggleSubReminderPanel()">
+      <div class="flex justify-between items-center text-xs">
+        <div class="flex items-center gap-1.5 truncate">
+          <span class="text-cyan-400">🔔</span>
+          <span class="font-bold text-[11px]">Hatırlatıcılar</span>
+          <span id="stripQuickBadge" class="text-[10px] bg-blue-900/40 text-blue-300 px-1.5 py-0.5 rounded font-semibold truncate">Tüm vadeler kontrol edildi</span>
+        </div>
+        <span id="stripToggleIcon" class="text-xs custom-muted font-bold ml-2">▼</span>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 text-[11px]">
-        <!-- Periyodik Bakım (1 Yıl / 20.000 KM) -->
-        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+      <!-- Açılır Gövde (Detay Tablosu) -->
+      <div id="subReminderDetails" class="grid grid-cols-2 gap-2 text-[11px] pt-2.5 mt-2 border-t border-slate-700/40 hidden">
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30">
           <div class="text-[10px] font-bold text-blue-400">🛠️ Periyodik Bakım</div>
-          <div id="remMaintenanceText" class="font-extrabold mt-1 text-emerald-400">Hesaplanıyor...</div>
-          <div id="remMaintenanceSub" class="text-[9px] custom-muted mt-0.5">1 Yıl / 20.000 KM</div>
+          <div id="subRemMaintenanceText" class="font-extrabold mt-0.5 text-emerald-400">Hesaplanıyor...</div>
+          <div id="subRemMaintenanceSub" class="text-[9px] custom-muted">1 Yıl / 20.000 KM</div>
         </div>
-
-        <!-- MTV Takvim Sayacı -->
-        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30">
           <div class="text-[10px] font-bold text-amber-400">🏛️ MTV Taksiti</div>
-          <div id="remMtvText" class="font-extrabold mt-1 text-amber-300">Hesaplanıyor...</div>
-          <div id="remMtvSub" class="text-[9px] custom-muted mt-0.5">Ocak & Temmuz Vadesi</div>
+          <div id="subRemMtvText" class="font-extrabold mt-0.5 text-amber-300">Hesaplanıyor...</div>
+          <div id="subRemMtvSub" class="text-[9px] custom-muted">Ocak & Temmuz</div>
         </div>
-
-        <!-- Kasko Yenileme -->
-        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30">
           <div class="text-[10px] font-bold text-purple-400">🛡️ Kasko Poliçesi</div>
-          <div id="remKaskoText" class="font-extrabold mt-1 text-purple-300">Hesaplanıyor...</div>
-          <div id="remKaskoSub" class="text-[9px] custom-muted mt-0.5">Yıllık Yenileme</div>
+          <div id="subRemKaskoText" class="font-extrabold mt-0.5 text-purple-300">Hesaplanıyor...</div>
+          <div id="subRemKaskoSub" class="text-[9px] custom-muted">Yıllık Yenileme</div>
         </div>
-
-        <!-- Sigorta / Muayene -->
-        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+        <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30">
           <div class="text-[10px] font-bold text-rose-400">📑 Trafik / Muayene</div>
-          <div id="remSigortaText" class="font-extrabold mt-1 text-slate-200">Hesaplanıyor...</div>
-          <div id="remSigortaSub" class="text-[9px] custom-muted mt-0.5">Yasal Geçerlilik</div>
+          <div id="subRemSigortaText" class="font-extrabold mt-0.5 text-slate-200">Hesaplanıyor...</div>
+          <div id="subRemSigortaSub" class="text-[9px] custom-muted">Yasal Süre</div>
         </div>
       </div>
     </div>
 
-    <!-- 1. SEKME: ÖZET & AY ANALİZLERİ -->
+    <!-- 1. SEKME: ÖZET & AY ANALİZLERİ (DASHBOARD) -->
     <div id="tabDashboard" class="space-y-3">
+      
+      <!-- SADECE ANA SAYFADA BÜYÜK AÇIK DURAN HATIRLATICI PANELİ -->
+      <div id="mainDashboardReminderCard" class="custom-card p-3 rounded-xl shadow border-cyan-800/40 space-y-2">
+        <div class="flex justify-between items-center border-b border-slate-700/40 pb-1.5">
+          <span class="text-xs font-bold flex items-center gap-1.5 text-cyan-400">
+            <span>🔔</span> Bakım & Yükümlülük Hatırlatıcıları
+          </span>
+          <span class="text-[10px] custom-muted font-medium">Akıllı Takvim</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+            <div class="text-[10px] font-bold text-blue-400">🛠️ Periyodik Bakım</div>
+            <div id="remMaintenanceText" class="font-extrabold mt-1 text-emerald-400">Hesaplanıyor...</div>
+            <div id="remMaintenanceSub" class="text-[9px] custom-muted mt-0.5">1 Yıl / 20.000 KM</div>
+          </div>
+
+          <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+            <div class="text-[10px] font-bold text-amber-400">🏛️ MTV Taksiti</div>
+            <div id="remMtvText" class="font-extrabold mt-1 text-amber-300">Hesaplanıyor...</div>
+            <div id="remMtvSub" class="text-[9px] custom-muted mt-0.5">Ocak & Temmuz Vadesi</div>
+          </div>
+
+          <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+            <div class="text-[10px] font-bold text-purple-400">🛡️ Kasko Poliçesi</div>
+            <div id="remKaskoText" class="font-extrabold mt-1 text-purple-300">Hesaplanıyor...</div>
+            <div id="remKaskoSub" class="text-[9px] custom-muted mt-0.5">Yıllık Yenileme</div>
+          </div>
+
+          <div class="p-2 rounded-lg bg-slate-800/40 border border-slate-700/30 flex flex-col justify-between">
+            <div class="text-[10px] font-bold text-rose-400">📑 Trafik / Muayene</div>
+            <div id="remSigortaText" class="font-extrabold mt-1 text-slate-200">Hesaplanıyor...</div>
+            <div id="remSigortaSub" class="text-[9px] custom-muted mt-0.5">Yasal Geçerlilik</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dönem Özeti -->
       <div class="flex justify-between items-center px-0.5">
         <span class="text-[11px] font-bold custom-muted tracking-wide flex items-center gap-1">
           <span>📅</span> <span id="dashPeriodTitle">Dönem: 2026</span>
@@ -228,6 +267,7 @@
         <span id="dashTotalEntries" class="text-[10px] font-bold text-cyan-400">0 Kayıt</span>
       </div>
 
+      <!-- Metrik Kartları (TOPLAM GİDERLER Başlığı Korundu) -->
       <div class="grid grid-cols-2 gap-2">
         <div class="custom-card p-3 rounded-xl shadow relative">
           <div class="flex justify-between items-start">
@@ -264,6 +304,7 @@
           <p id="statFuelVolume" class="text-[10px] custom-muted mt-0.5">Hacim: 0.0 L</p>
         </div>
 
+        <!-- TOPLAM GİDERLER KARTI (KORUNDU) -->
         <div class="custom-card p-3 rounded-xl shadow relative">
           <div class="flex justify-between items-start">
             <span class="text-[9px] font-bold custom-muted uppercase tracking-wider">TOPLAM GİDERLER</span>
@@ -505,6 +546,27 @@
 
   </main>
 
+  <!-- HIZLI MANUEL KM GÜNCELLEME MODALI -->
+  <div id="odoModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
+    <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-xs">📍 Araç Kilometresi Güncelle</h3>
+        <button onclick="closeModal('odoModal')" class="custom-muted text-base">✕</button>
+      </div>
+      <form onsubmit="saveManualOdo(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="custom-muted text-[10px]">Mevcut Araç Kilometresi (ODO)</label>
+          <input type="number" id="mOdoInput" required placeholder="örn: 12500" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-bold text-base" />
+          <p class="text-[10px] custom-muted mt-1">Bu KM; bakım, lastik ve analizlerde baz alınacaktır.</p>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('odoModal')" class="flex-1 py-2 custom-card font-bold rounded-lg text-xs">Vazgeç</button>
+          <button type="submit" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs shadow">KM Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- YAKIT MODALI -->
   <div id="fuelModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
@@ -617,7 +679,7 @@
         </div>
         <div>
           <label class="custom-muted text-[10px]">Açıklama</label>
-          <input type="text" id="eDesc" placeholder="örn: Yetkili servis yağ ve filtre bakımı" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" />
+          <input type="text" id="eDesc" placeholder="örn: Yağ ve filtre bakımı" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" />
         </div>
 
         <div>
@@ -793,6 +855,33 @@
     let expenses = JSON.parse(localStorage.getItem("oto_expenses_v5")) || sampleExpenses;
     let tireData = JSON.parse(localStorage.getItem("oto_tires_v5")) || sampleTires;
 
+    // Bağımsız Güncel KM Depolama
+    let manualOdo = parseFloat(localStorage.getItem("oto_manual_odo")) || 0;
+
+    function getLatestVehicleKm() {
+      const fuelKms = fuels.map(f => f.km);
+      const maxFuelKm = fuelKms.length > 0 ? Math.max(...fuelKms) : 0;
+      return Math.max(maxFuelKm, manualOdo);
+    }
+
+    function openOdoModal() {
+      const current = getLatestVehicleKm();
+      document.getElementById("mOdoInput").value = current > 0 ? current : "";
+      document.getElementById("odoModal").classList.remove("hidden");
+    }
+
+    function saveManualOdo(e) {
+      e.preventDefault();
+      const val = parseFloat(document.getElementById("mOdoInput").value);
+      if (val > 0) {
+        manualOdo = val;
+        localStorage.setItem("oto_manual_odo", manualOdo.toString());
+        closeModal("odoModal");
+        renderAll();
+        alert(`Güncel kilometre ${val.toLocaleString('tr-TR')} km olarak kaydedildi!`);
+      }
+    }
+
     const currentSystemYear = new Date().getFullYear().toString();
     let selectedYear = localStorage.getItem("oto_selected_year") || currentSystemYear;
 
@@ -829,14 +918,16 @@
       renderAll();
     }
 
-    const defaultProfile = { name: "Dacia Sandero", desc: "1.0 TCe • 11.420 KM" };
+    const defaultProfile = { name: "Dacia Sandero", desc: "1.0 TCe" };
     let carProfile = JSON.parse(localStorage.getItem("oto_profile_v1")) || defaultProfile;
 
     function applyCarProfile() {
+      const liveKm = getLatestVehicleKm();
       document.getElementById("headerCarName").innerText = carProfile.name || "Aracım";
-      document.getElementById("headerCarDesc").innerText = carProfile.desc || "Model bilgisi";
+      document.getElementById("headerCarDesc").innerText = `${carProfile.desc || 'Model'} • ${liveKm > 0 ? liveKm.toLocaleString('tr-TR') + ' KM' : 'KM Yok'}`;
       document.getElementById("cfgCarName").value = carProfile.name || "";
       document.getElementById("cfgCarDesc").value = carProfile.desc || "";
+      document.getElementById("headerOdoBadge").innerText = liveKm > 0 ? `${liveKm.toLocaleString('tr-TR')} km` : "-- km";
     }
 
     function saveCarProfile() {
@@ -858,6 +949,7 @@
       if (confirm("Tüm veriler kalıcı olarak sıfırlanacak. Emin misiniz?")) {
         fuels = [];
         expenses = [];
+        manualOdo = 0;
         tireData = {
           activeSet: "summer",
           summer: {
@@ -881,6 +973,7 @@
         localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
         localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
         localStorage.setItem("oto_profile_v1", JSON.stringify(carProfile));
+        localStorage.removeItem("oto_manual_odo");
 
         document.getElementById("wipeConfirmInput").value = "";
         selectedYear = currentSystemYear;
@@ -914,12 +1007,12 @@
     }
 
     function toggleActiveTireSet() {
-      const latestKm = fuels.length > 0 ? fuels[fuels.length - 1].km : 0;
+      const liveKm = getLatestVehicleKm();
       tireData.activeSet = activeSeasonTab;
-      tireData[activeSeasonTab].mountedKm = latestKm;
+      tireData[activeSeasonTab].mountedKm = liveKm;
       localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
       renderTiresUI();
-      alert(`Aktif set "${activeSeasonTab === 'summer' ? 'Yazlık' : 'Kışlık'}" yapıldı.`);
+      alert(`Aktif set "${activeSeasonTab === 'summer' ? 'Yazlık' : 'Kışlık'}" yapıldı. (Takılma KM: ${liveKm})`);
     }
 
     function openTireModal(pos) {
@@ -976,7 +1069,7 @@
         btnActive.classList.remove("hidden");
       }
 
-      const currentCarKm = fuels.length > 0 ? fuels[fuels.length - 1].km : 0;
+      const currentCarKm = getLatestVehicleKm();
       const mountedKm = set.mountedKm || 0;
       document.getElementById("tireMountedKm").innerText = mountedKm > 0 ? `${mountedKm.toLocaleString('tr-TR')} km` : "--";
 
@@ -999,21 +1092,31 @@
       });
     }
 
-    // 8. AKILLI HATIRLATICI HESAPLAMA MOTORU (1 Yıl / 20.000 KM & Vadeler)
+    // 8. AKILLI HATIRLATICI MOTORU & AÇILIR ŞERİT
+    function toggleSubReminderPanel() {
+      const details = document.getElementById("subReminderDetails");
+      const icon = document.getElementById("stripToggleIcon");
+      if (details.classList.contains("hidden")) {
+        details.classList.remove("hidden");
+        icon.innerText = "▲";
+      } else {
+        details.classList.add("hidden");
+        icon.innerText = "▼";
+      }
+    }
+
     function calculateSmartReminders() {
       const now = new Date();
-      const currentKm = fuels.length > 0 ? Math.max(...fuels.map(f => f.km)) : 0;
+      const currentKm = getLatestVehicleKm();
 
-      // 1. Periyodik Bakım (1 Yıl veya 20.000 KM)
+      // 1. Periyodik Bakım (1 Yıl / 20.000 KM)
       const maintenanceLogs = expenses.filter(e => e.type === "Periyodik Bakım").sort((a,b) => new Date(b.date) - new Date(a.date));
-      const mText = document.getElementById("remMaintenanceText");
-      const mSub = document.getElementById("remMaintenanceSub");
+      let mTextVal = "Kayıt Yok", mSubVal = "1 Yıl / 20.000 KM", mColor = "text-slate-400";
 
       if (maintenanceLogs.length > 0) {
         const lastM = maintenanceLogs[0];
         const lastMDate = new Date(lastM.date);
         
-        // Bakım günündeki tahmini veya en yakın KM'yi bul
         const nearbyFuel = fuels.filter(f => f.date <= lastM.date).sort((a,b) => new Date(b.date) - new Date(a.date));
         const lastMKm = nearbyFuel.length > 0 ? nearbyFuel[0].km : (fuels.length > 0 ? fuels[0].km : 0);
 
@@ -1025,21 +1128,25 @@
         const kmLeft = Math.max(0, targetKm - currentKm);
 
         if (daysLeft <= 0 || kmLeft <= 0) {
-          mText.innerText = "⚠️ Bakım Geldi!";
-          mText.className = "font-extrabold mt-1 text-rose-500 animate-pulse";
-          mSub.innerText = `${daysLeft <= 0 ? 'Süre doldu' : '20.000 KM aşıldı'}`;
+          mTextVal = "⚠️ Bakım Geldi!";
+          mColor = "text-rose-500 animate-pulse";
+          mSubVal = `${daysLeft <= 0 ? 'Süre doldu' : '20.000 KM aşıldı'}`;
         } else {
-          mText.innerText = `${daysLeft} gün kaldı`;
-          mText.className = daysLeft < 30 ? "font-extrabold mt-1 text-amber-400" : "font-extrabold mt-1 text-emerald-400";
-          mSub.innerText = `Kalan: ${kmLeft.toLocaleString('tr-TR')} km`;
+          mTextVal = `${daysLeft} gün kaldı`;
+          mColor = daysLeft < 30 ? "text-amber-400" : "text-emerald-400";
+          mSubVal = `Kalan: ${kmLeft.toLocaleString('tr-TR')} km`;
         }
-      } else {
-        mText.innerText = "Kayıt Yok";
-        mText.className = "font-extrabold mt-1 text-slate-400";
-        mSub.innerText = "İlk bakımı girin";
       }
 
-      // 2. MTV Hesaplama (31 Ocak & 31 Temmuz)
+      document.getElementById("remMaintenanceText").innerText = mTextVal;
+      document.getElementById("remMaintenanceText").className = `font-extrabold mt-1 ${mColor}`;
+      document.getElementById("remMaintenanceSub").innerText = mSubVal;
+
+      document.getElementById("subRemMaintenanceText").innerText = mTextVal;
+      document.getElementById("subRemMaintenanceText").className = `font-extrabold mt-0.5 ${mColor}`;
+      document.getElementById("subRemMaintenanceSub").innerText = mSubVal;
+
+      // 2. MTV Hesaplama
       const year = now.getFullYear();
       const jan31 = new Date(year, 0, 31);
       const jul31 = new Date(year, 6, 31);
@@ -1052,11 +1159,12 @@
       const mtvDays = Math.ceil((targetMtv - now) / (1000 * 60 * 60 * 24));
       document.getElementById("remMtvText").innerText = `${mtvDays} gün kaldı`;
       document.getElementById("remMtvSub").innerText = labelMtv;
+      document.getElementById("subRemMtvText").innerText = `${mtvDays} gün kaldı`;
+      document.getElementById("subRemMtvSub").innerText = labelMtv;
 
-      // 3. Kasko Poliçesi (365 Gün)
+      // 3. Kasko Poliçesi
       const kaskoLogs = expenses.filter(e => e.type === "Kasko").sort((a,b) => new Date(b.date) - new Date(a.date));
-      const kText = document.getElementById("remKaskoText");
-      const kSub = document.getElementById("remKaskoSub");
+      let kTextVal = "Kayıt Yok", kColor = "text-slate-400", kSubVal = "Poliçe ekleyin";
 
       if (kaskoLogs.length > 0) {
         const lastKDate = new Date(kaskoLogs[0].date);
@@ -1065,23 +1173,26 @@
         const kDays = Math.ceil((kExpiry - now) / (1000 * 60 * 60 * 24));
 
         if (kDays <= 0) {
-          kText.innerText = "Bitti / Yenileyin";
-          kText.className = "font-extrabold mt-1 text-rose-500 animate-pulse";
+          kTextVal = "Bitti / Yenileyin";
+          kColor = "text-rose-500 animate-pulse";
         } else {
-          kText.innerText = `${kDays} gün kaldı`;
-          kText.className = kDays <= 30 ? "font-extrabold mt-1 text-amber-400" : "font-extrabold mt-1 text-purple-300";
+          kTextVal = `${kDays} gün kaldı`;
+          kColor = kDays <= 30 ? "text-amber-400" : "text-purple-300";
         }
-        kSub.innerText = `Son poliçe: ${kaskoLogs[0].date}`;
-      } else {
-        kText.innerText = "Kayıt Yok";
-        kText.className = "font-extrabold mt-1 text-slate-400";
-        kSub.innerText = "Poliçe ekleyin";
+        kSubVal = `Son: ${kaskoLogs[0].date}`;
       }
 
-      // 4. Trafik Sigortası veya Muayene
+      document.getElementById("remKaskoText").innerText = kTextVal;
+      document.getElementById("remKaskoText").className = `font-extrabold mt-1 ${kColor}`;
+      document.getElementById("remKaskoSub").innerText = kSubVal;
+
+      document.getElementById("subRemKaskoText").innerText = kTextVal;
+      document.getElementById("subRemKaskoText").className = `font-extrabold mt-0.5 ${kColor}`;
+      document.getElementById("subRemKaskoSub").innerText = kSubVal;
+
+      // 4. Trafik / Muayene
       const sigortaLogs = expenses.filter(e => e.type === "Trafik Sigortası" || e.type === "TÜVTÜRK Muayene").sort((a,b) => new Date(b.date) - new Date(a.date));
-      const sText = document.getElementById("remSigortaText");
-      const sSub = document.getElementById("remSigortaSub");
+      let sTextVal = "Kayıt Yok", sColor = "text-slate-400", sSubVal = "Geçerlilik süresi";
 
       if (sigortaLogs.length > 0) {
         const lastS = sigortaLogs[0];
@@ -1092,18 +1203,28 @@
         const sDays = Math.ceil((sExpiry - now) / (1000 * 60 * 60 * 24));
 
         if (sDays <= 0) {
-          sText.innerText = "Süresi Doldu!";
-          sText.className = "font-extrabold mt-1 text-rose-500 animate-pulse";
+          sTextVal = "Süresi Doldu!";
+          sColor = "text-rose-500 animate-pulse";
         } else {
-          sText.innerText = `${sDays} gün kaldı`;
-          sText.className = sDays <= 30 ? "font-extrabold mt-1 text-amber-400" : "font-extrabold mt-1 text-slate-200";
+          sTextVal = `${sDays} gün kaldı`;
+          sColor = sDays <= 30 ? "text-amber-400" : "text-slate-200";
         }
-        sSub.innerText = `${lastS.type.split(" ")[0]} (${lastS.date})`;
-      } else {
-        sText.innerText = "Kayıt Yok";
-        sText.className = "font-extrabold mt-1 text-slate-400";
-        sSub.innerText = "Poliçe / Muayene girin";
+        sSubVal = `${lastS.type.split(" ")[0]} (${lastS.date})`;
       }
+
+      document.getElementById("remSigortaText").innerText = sTextVal;
+      document.getElementById("remSigortaText").className = `font-extrabold mt-1 ${sColor}`;
+      document.getElementById("remSigortaSub").innerText = sSubVal;
+
+      document.getElementById("subRemSigortaText").innerText = sTextVal;
+      document.getElementById("subRemSigortaText").className = `font-extrabold mt-0.5 ${sColor}`;
+      document.getElementById("subRemSigortaSub").innerText = sSubVal;
+
+      // İnce Şerit Rozeti (En Kritik Hatırlatmayı Gösterir)
+      const stripBadge = document.getElementById("stripQuickBadge");
+      if (mTextVal.includes("Bakım Geldi")) stripBadge.innerText = "⚠️ Bakım Zamanı Geldi!";
+      else if (mtvDays <= 30) stripBadge.innerText = `🏛️ MTV: ${mtvDays} gün kaldı`;
+      else stripBadge.innerText = `🛠️ Bakım: ${mTextVal}`;
     }
 
     let priceChart = null;
@@ -1526,6 +1647,8 @@
       document.getElementById("fDocData").value = "";
       document.getElementById("fDocPreviewText").classList.add("hidden");
       document.getElementById("fDate").value = new Date().toISOString().split("T")[0];
+      const liveKm = getLatestVehicleKm();
+      if (liveKm > 0) document.getElementById("fKm").value = liveKm;
       document.getElementById("fuelModalTitle").innerText = "⛽ Yeni Yakıt Alımı";
       document.getElementById("fuelModal").classList.remove("hidden");
     }
@@ -1552,10 +1675,12 @@
       e.preventDefault();
       const id = document.getElementById("fId").value || Date.now().toString();
       const dateVal = document.getElementById("fDate").value;
+      const kmVal = parseFloat(document.getElementById("fKm").value);
+
       const record = {
         id,
         date: dateVal,
-        km: parseFloat(document.getElementById("fKm").value),
+        km: kmVal,
         station: document.getElementById("fStation").value,
         branch: document.getElementById("fBranch").value.trim(),
         liters: parseFloat(document.getElementById("fLiters").value),
@@ -1651,6 +1776,7 @@
 
     function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
 
+    // Sekmeler Arası Geçiş ve Akıllı Şerit Yönetimi
     function switchTab(tab) {
       const tabs = ["dashboard", "fuel", "expenses", "tires", "backup"];
       tabs.forEach(t => {
@@ -1664,10 +1790,23 @@
       const activeBtn = document.getElementById("nav" + tab.charAt(0).toUpperCase() + tab.slice(1));
       if (activeEl) activeEl.classList.remove("hidden");
       if (activeBtn) activeBtn.className = "flex flex-col items-center py-1 px-2.5 rounded-xl bg-blue-600/20 text-cyan-500 font-bold";
+
+      // Hatırlatıcı Şeridi Mantığı:
+      // Eğer dashboard'daysa ince şerit gizlenir (çünkü dashboard'da zaten büyük açık panel var).
+      // Diğer sekmelerdeyse ince şerit görünür, tıklanınca açılır.
+      const stripEl = document.getElementById("collapsibleReminderStrip");
+      if (tab === "dashboard") {
+        stripEl.classList.add("hidden");
+      } else {
+        stripEl.classList.remove("hidden");
+        // Varsayılan olarak kapalı tut
+        document.getElementById("subReminderDetails").classList.add("hidden");
+        document.getElementById("stripToggleIcon").innerText = "▼";
+      }
     }
 
     function exportJSON() {
-      const data = { fuels, expenses, tires: tireData, profile: carProfile };
+      const data = { fuels, expenses, tires: tireData, profile: carProfile, manualOdo };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -1698,11 +1837,13 @@
           if (parsed.expenses) expenses = parsed.expenses;
           if (parsed.tires) tireData = parsed.tires;
           if (parsed.profile) carProfile = parsed.profile;
+          if (parsed.manualOdo) manualOdo = parsed.manualOdo;
 
           localStorage.setItem("oto_fuels_v5", JSON.stringify(fuels));
           localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
           localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
           localStorage.setItem("oto_profile_v1", JSON.stringify(carProfile));
+          if (manualOdo > 0) localStorage.setItem("oto_manual_odo", manualOdo.toString());
 
           populateYearSelector();
           renderAll();
