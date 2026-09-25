@@ -31,6 +31,54 @@
     document.head.appendChild(link);
   </script>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        const swScript = `
+          const CACHE_NAME = 'ototakip-offline-v3';
+          const ASSETS = [
+            './',
+            './index.html',
+            'https://cdn.tailwindcss.com',
+            'https://cdn.jsdelivr.net/npm/chart.js'
+          ];
+
+          self.addEventListener('install', (e) => {
+            e.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+            );
+          });
+
+          self.addEventListener('activate', (e) => {
+            e.waitUntil(
+              caches.keys().then((keys) => Promise.all(
+                keys.map((k) => { if (k !== CACHE_NAME) return caches.delete(k); })
+              )).then(() => self.clients.claim())
+            );
+          });
+
+          self.addEventListener('fetch', (e) => {
+            e.respondWith(
+              caches.match(e.request).then((res) => {
+                if (res) return res;
+                return fetch(e.request).then((fetchRes) => {
+                  return caches.open(CACHE_NAME).then((cache) => {
+                    if (e.request.method === 'GET' && !e.request.url.startsWith('chrome-extension')) {
+                      cache.put(e.request, fetchRes.clone());
+                    }
+                    return fetchRes;
+                  });
+                }).catch(() => caches.match('./index.html'));
+              })
+            );
+          });
+        `;
+        const swBlob = new Blob([swScript], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+      });
+    }
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -97,26 +145,29 @@
 
   <!-- Header -->
   <header class="sticky top-0 z-30 backdrop-blur-md border-b px-4 py-3 flex justify-between items-center shadow-lg">
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5">
       <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-600/30">🚗</div>
       <div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <h1 id="headerCarName" class="text-base font-bold tracking-wide">Aracım</h1>
           <span class="text-[10px] bg-blue-900/60 text-blue-400 font-extrabold px-1.5 py-0.5 rounded border border-blue-700/50">PRO</span>
         </div>
-        <p id="headerCarDesc" class="text-xs custom-muted font-medium">Kayıtlı Veri Yok • Güncelleyin</p>
+        <p id="headerCarDesc" class="text-xs custom-muted font-medium">Kayıtlı Veri Yok</p>
       </div>
     </div>
     
     <div class="flex items-center gap-2">
-      <button onclick="cycleTheme()" id="btnThemeToggle" title="Tema Değiştir" class="h-8 px-2.5 rounded-full custom-card flex items-center gap-1 text-xs font-bold shadow-sm">
+      <!-- Genel Yıl Seçici Dropdown -->
+      <select id="globalYearSelect" onchange="changeActiveYear(this.value)" class="text-xs font-bold py-1 px-2 rounded-xl custom-card border outline-none text-cyan-400">
+      </select>
+
+      <button onclick="cycleTheme()" id="btnThemeToggle" title="Tema Değiştir" class="h-8 px-2 rounded-full custom-card flex items-center gap-1 text-xs font-bold shadow-sm">
         <span id="themeIcon">🔵</span>
-        <span id="themeName" class="text-[11px] hidden sm:inline">Mavi</span>
       </button>
       <button onclick="toggleFullScreen()" title="Tam Ekran" class="w-8 h-8 rounded-full custom-card flex items-center justify-center text-xs">⛶</button>
-      <button onclick="startTurbo(30)" id="headerTurboBtn" class="flex items-center gap-1.5 custom-card text-xs px-3 py-1.5 rounded-full font-semibold">
+      <button onclick="startTurbo(30)" id="headerTurboBtn" class="flex items-center gap-1 custom-card text-xs px-2.5 py-1.5 rounded-full font-semibold">
         <span>⏱️</span>
-        <span id="headerTurboText">Turbo 30s</span>
+        <span id="headerTurboText">30s</span>
       </button>
     </div>
   </header>
@@ -126,6 +177,13 @@
 
     <!-- 1. SEKME: ÖZET & AY ANALİZLERİ -->
     <div id="tabDashboard" class="space-y-4">
+      <div class="flex justify-between items-center px-1">
+        <span class="text-xs font-bold custom-muted tracking-wide flex items-center gap-1">
+          <span>📅</span> <span id="dashPeriodTitle">Dönem: 2026</span>
+        </span>
+        <span id="dashTotalEntries" class="text-[11px] font-semibold text-cyan-400">0 Kayıt</span>
+      </div>
+
       <div class="grid grid-cols-2 gap-3">
         <div class="custom-card p-4 rounded-2xl shadow-lg relative">
           <div class="flex justify-between items-start">
@@ -136,7 +194,7 @@
             <span id="statLatestCons" class="text-2xl font-black text-cyan-500 tracking-tight">--</span>
             <span class="text-xs font-semibold custom-muted ml-1">L/100km</span>
           </div>
-          <p id="statAvgCons" class="text-[11px] custom-muted mt-1">Genel Ort: -- L</p>
+          <p id="statAvgCons" class="text-[11px] custom-muted mt-1">Dönem Ort: -- L</p>
         </div>
 
         <div class="custom-card p-4 rounded-2xl shadow-lg relative">
@@ -164,7 +222,7 @@
 
         <div class="custom-card p-4 rounded-2xl shadow-lg relative">
           <div class="flex justify-between items-start">
-            <span class="text-[11px] font-bold custom-muted uppercase tracking-wider">TOPLAM SAHİPLİK</span>
+            <span class="text-[11px] font-bold custom-muted uppercase tracking-wider">TOPLAM GİDER</span>
             <span class="w-7 h-7 rounded-full bg-purple-950/60 text-purple-400 flex items-center justify-center text-xs">$</span>
           </div>
           <div class="mt-2">
@@ -195,7 +253,7 @@
             <h4 class="text-xs font-bold flex items-center gap-1.5">
               <span class="text-blue-500">📈</span> Aylık Yol & KM Değişim Analizi
             </h4>
-            <p id="kmDiffSummary" class="text-[11px] custom-muted mt-0.5">Yeterli veri girildiğinde hesaplanır...</p>
+            <p id="kmDiffSummary" class="text-[11px] custom-muted mt-0.5">Veri girildiğinde hesaplanır...</p>
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">KM Bar</span>
         </div>
@@ -209,7 +267,7 @@
             <h4 class="text-xs font-bold flex items-center gap-1.5">
               <span class="text-amber-500">⛽</span> Aylık Yakıt Trendi (₺)
             </h4>
-            <p id="fuelDiffSummary" class="text-[11px] custom-muted mt-0.5">Yeterli veri girildiğinde hesaplanır...</p>
+            <p id="fuelDiffSummary" class="text-[11px] custom-muted mt-0.5">Veri girildiğinde hesaplanır...</p>
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-900/40 text-amber-400 border border-amber-700/50">Aylık Toplam</span>
         </div>
@@ -222,7 +280,7 @@
           <h4 class="text-xs font-bold flex items-center gap-1.5">
             <span class="text-cyan-500">📊</span> Pompa Litre Fiyat Trendi (₺ / L)
           </h4>
-          <p class="text-[11px] custom-muted mt-0.5">Geçmiş akaryakıt alımlarının pompa birim fiyat eğrisi</p>
+          <p class="text-[11px] custom-muted mt-0.5">Seçilen dönemin birim akaryakıt fiyat eğrisi</p>
         </div>
         <div class="h-40 w-full"><canvas id="priceTrendCanvas"></canvas></div>
       </div>
@@ -230,16 +288,18 @@
 
     <!-- 2. SEKME: YAKIT LİSTESİ -->
     <div id="tabFuel" class="space-y-3 hidden">
-      <div class="flex justify-between items-center mb-2">
-        <h3 class="text-sm font-bold">Akaryakıt Dolum Geçmişi</h3>
+      <div class="flex justify-between items-center mb-1">
+        <div>
+          <h3 class="text-sm font-bold">Akaryakıt Dolum Geçmişi</h3>
+          <p id="fuelPeriodIndicator" class="text-[11px] text-cyan-400 font-medium"></p>
+        </div>
         <button onclick="openFuelModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 shadow-lg shadow-blue-600/30">
           <span>+</span> Yakıt Ekle
         </button>
       </div>
 
-      <!-- Hızlı Filtreleme Arama Çubuğu -->
       <div class="relative">
-        <input type="text" id="fuelSearchInput" oninput="renderFuelCards(calculateFuelMetrics())" placeholder="İstasyon, şube veya tarih ara..." class="w-full text-xs p-2.5 rounded-xl custom-input border outline-none pl-8" />
+        <input type="text" id="fuelSearchInput" oninput="renderFuelCards(getFilteredFuels())" placeholder="İstasyon, şube veya ay ara..." class="w-full text-xs p-2.5 rounded-xl custom-input border outline-none pl-8" />
         <span class="absolute left-2.5 top-2.5 text-xs custom-muted">🔍</span>
       </div>
 
@@ -248,17 +308,16 @@
 
     <!-- 3. SEKME: GİDERLER & MTV -->
     <div id="tabExpenses" class="space-y-3 hidden">
-      <div class="flex justify-between items-center mb-2">
+      <div class="flex justify-between items-center mb-1">
         <div>
           <h3 class="text-sm font-bold">Bakım, Sigorta & MTV</h3>
-          <p id="mtvReminderBadge" class="text-[11px] text-amber-500 font-semibold mt-0.5"></p>
+          <p id="mtvReminderBadge" class="text-[11px] text-amber-500 font-semibold"></p>
         </div>
         <button onclick="openExpenseModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 shadow-lg shadow-emerald-600/30">
           <span>+</span> Gider Ekle
         </button>
       </div>
 
-      <!-- Gider Arama Çubuğu -->
       <div class="relative">
         <input type="text" id="expenseSearchInput" oninput="renderExpenseCards()" placeholder="Kategori veya açıklama ara (örn: Bakım, Kasko)..." class="w-full text-xs p-2.5 rounded-xl custom-input border outline-none pl-8" />
         <span class="absolute left-2.5 top-2.5 text-xs custom-muted">🔍</span>
@@ -267,11 +326,9 @@
       <div id="expenseCardsList" class="space-y-3"></div>
     </div>
 
-    <!-- 4. SEKME: 4 LASTİK YÖNETİMİ (YAZLIK & KIŞLIK ÇİFT SET) -->
+    <!-- 4. SEKME: 4 LASTİK YÖNETİMİ -->
     <div id="tabTires" class="space-y-4 hidden">
       <div class="custom-card p-4 rounded-2xl shadow-lg">
-        
-        <!-- Set Değiştirme Butonları -->
         <div class="flex gap-2 p-1 bg-slate-800/40 rounded-xl mb-3">
           <button onclick="switchTireSeason('summer')" id="btnTireSummer" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-amber-500/20 text-amber-400 border border-amber-500/40">
             ☀️ Yazlık Set
@@ -293,7 +350,6 @@
           </button>
         </div>
 
-        <!-- Akıllı Rotasyon & KM Sayacı -->
         <div class="p-3 bg-slate-800/30 rounded-xl border border-slate-700/40 mb-3 space-y-1 text-xs">
           <div class="flex justify-between">
             <span class="custom-muted">Set Takılma KM:</span>
@@ -308,7 +364,6 @@
           </div>
         </div>
 
-        <!-- Görsel Araç & 4 Lastik Krokisi -->
         <div class="relative max-w-[280px] mx-auto py-2">
           <div class="w-36 h-56 mx-auto rounded-3xl border-2 border-dashed border-slate-700/60 flex flex-col items-center justify-between py-4 bg-slate-900/30">
             <span class="text-[10px] custom-muted font-bold tracking-widest uppercase">ÖN KAPUT</span>
@@ -316,28 +371,24 @@
             <span class="text-[10px] custom-muted font-bold tracking-widest uppercase">BAGAJ</span>
           </div>
 
-          <!-- Sol Ön Lastik -->
           <div onclick="openTireModal('sol_on')" class="absolute top-4 left-0 w-28 custom-card p-2 rounded-xl text-center cursor-pointer shadow-md hover:border-cyan-500 transition-all">
             <div class="text-[10px] font-extrabold text-blue-400">SOL ÖN</div>
             <div id="stat_sol_on_status" class="text-[11px] font-bold text-emerald-400 mt-0.5">Sorunsuz</div>
             <div id="stat_sol_on_cost" class="text-[10px] custom-muted">Masraf: 0 ₺</div>
           </div>
 
-          <!-- Sağ Ön Lastik -->
           <div onclick="openTireModal('sag_on')" class="absolute top-4 right-0 w-28 custom-card p-2 rounded-xl text-center cursor-pointer shadow-md hover:border-cyan-500 transition-all">
             <div class="text-[10px] font-extrabold text-blue-400">SAĞ ÖN</div>
             <div id="stat_sag_on_status" class="text-[11px] font-bold text-emerald-400 mt-0.5">Sorunsuz</div>
             <div id="stat_sag_on_cost" class="text-[10px] custom-muted">Masraf: 0 ₺</div>
           </div>
 
-          <!-- Sol Arka Lastik -->
           <div onclick="openTireModal('sol_arka')" class="absolute bottom-4 left-0 w-28 custom-card p-2 rounded-xl text-center cursor-pointer shadow-md hover:border-cyan-500 transition-all">
             <div class="text-[10px] font-extrabold text-blue-400">SOL ARKA</div>
             <div id="stat_sol_arka_status" class="text-[11px] font-bold text-emerald-400 mt-0.5">Sorunsuz</div>
             <div id="stat_sol_arka_cost" class="text-[10px] custom-muted">Masraf: 0 ₺</div>
           </div>
 
-          <!-- Sağ Arka Lastik -->
           <div onclick="openTireModal('sag_arka')" class="absolute bottom-4 right-0 w-28 custom-card p-2 rounded-xl text-center cursor-pointer shadow-md hover:border-cyan-500 transition-all">
             <div class="text-[10px] font-extrabold text-blue-400">SAĞ ARKA</div>
             <div id="stat_sag_arka_status" class="text-[11px] font-bold text-emerald-400 mt-0.5">Sorunsuz</div>
@@ -346,32 +397,30 @@
         </div>
       </div>
 
-      <!-- Ekspertiz & Servis Karnesi Butonu -->
       <div class="custom-card p-4 rounded-2xl shadow-lg text-center space-y-3">
         <h4 class="text-sm font-bold">📋 Araç Servis & Lastik Karnesi</h4>
-        <p class="text-xs custom-muted">Aracı satarken tüm yakıt, gider ve lastik tamir geçmişini döküm olarak yazdırabilir veya PDF yapabilirsiniz.</p>
+        <p class="text-xs custom-muted">Tüm yakıt, masraf ve lastik geçmişini tek sayfada yazdırabilir veya PDF yapabilirsiniz.</p>
         <button onclick="window.print()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-purple-600/30">
           Karnesi Yazdır / PDF İndir
         </button>
       </div>
     </div>
 
-    <!-- 5. SEKME: YEDEK & ARAÇ PROFİLİ AYARLARI -->
-    <div id="tabBackup" class="space-y-3 hidden">
-      
-      <!-- Araç Adı ve Bilgisi Düzenleme Kartı -->
+    <!-- 5. SEKME: YEDEK, AYARLAR & SIFIRLAMA -->
+    <div id="tabBackup" class="space-y-4 hidden">
+      <!-- Araç Profili Düzenleme -->
       <div class="custom-card p-5 rounded-2xl shadow-lg space-y-3">
         <h3 class="text-sm font-bold flex items-center gap-1.5">
           <span>🚘</span> Araç Profil Bilgileri
         </h3>
-        <p class="text-xs custom-muted">Uygulamanın üst başlığında ve karnede görünecek araç adı ve açıklamasını belirleyin.</p>
+        <p class="text-xs custom-muted">Üst başlıkta ve karnede görünecek araç adı ve açıklamasını belirleyin.</p>
         <div class="space-y-2 text-xs">
           <div>
-            <label class="custom-muted">Araç Adı (Örn: Beyaz Güvercin, Sandero, Ford Focus)</label>
+            <label class="custom-muted">Araç Adı</label>
             <input type="text" id="cfgCarName" placeholder="Aracım" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none" />
           </div>
           <div>
-            <label class="custom-muted">Model / Açıklama (Örn: 2024 Dacia Sandero 1.0 TCe)</label>
+            <label class="custom-muted">Model / Açıklama</label>
             <input type="text" id="cfgCarDesc" placeholder="Model bilgisi girin" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none" />
           </div>
           <button onclick="saveCarProfile()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow">
@@ -380,7 +429,7 @@
         </div>
       </div>
 
-      <!-- Yedekleme & Geri Yükleme Kartı -->
+      <!-- Yedekleme & Geri Yükleme -->
       <div class="custom-card p-5 rounded-2xl shadow-lg space-y-4">
         <h3 class="text-sm font-bold">Veri Yedekleme ve Güvenlik</h3>
         <p class="text-xs custom-muted leading-relaxed">Tüm verileriniz yalnızca bu cihazda saklanır. Cihaz değiştirirken yedeklerinizi alabilirsiniz.</p>
@@ -393,11 +442,30 @@
           <input type="file" accept=".json" onchange="importJSON(event)" class="text-xs custom-muted file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:bg-slate-700 file:text-white" />
         </div>
       </div>
+
+      <!-- Güvenli Fabrika Ayarlarına Dönüş / Sıfırlama Kartı -->
+      <div class="custom-card p-5 rounded-2xl shadow-lg space-y-3 border-rose-900/40">
+        <h3 class="text-sm font-bold text-rose-500 flex items-center gap-1.5">
+          <span>⚠️</span> Tüm Verileri Sıfırla (Fabrika Ayarları)
+        </h3>
+        <p class="text-xs custom-muted leading-relaxed">
+          Tüm yakıt alımları, giderler ve lastik kayıtları cihaz hafızasından kalıcı olarak silinir. Bu işlem geri alınamaz.
+        </p>
+        <div class="p-3 bg-rose-950/20 border border-rose-800/30 rounded-xl space-y-2">
+          <label class="text-[11px] font-bold text-rose-300 block">
+            İşlemi onaylamak için aşağıdaki kutuya büyük harflerle <span class="text-white underline">EVET</span> yazın:
+          </label>
+          <input type="text" id="wipeConfirmInput" placeholder="Buraya EVET yazın" class="w-full text-xs p-2 rounded-lg custom-input border uppercase font-bold tracking-widest text-center" />
+          <button onclick="wipeAllDataSecurely()" class="w-full py-2.5 bg-rose-700 hover:bg-rose-600 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-rose-700/30 transition-all">
+            🗑️ Tüm Verileri Kalıcı Olarak Sil
+          </button>
+        </div>
+      </div>
     </div>
 
   </main>
 
-  <!-- YAKIT MODALI (Fiş/Belge Yükleme Ekli) -->
+  <!-- YAKIT MODALI -->
   <div id="fuelModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-3xl p-5 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -474,7 +542,7 @@
     </div>
   </div>
 
-  <!-- MASRAF / GİDER MODALI -->
+  <!-- GİDER MODALI -->
   <div id="expenseModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-3xl p-5 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -530,7 +598,7 @@
     </div>
   </div>
 
-  <!-- LASTİK ÖZEL DÜZENLEME MODALI -->
+  <!-- LASTİK ÖZEL MODALI -->
   <div id="tireModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-3xl p-5 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -564,7 +632,7 @@
     </div>
   </div>
 
-  <!-- BELGE / FİŞ ÖNİZLEME MODALI -->
+  <!-- BELGE ÖNİZLEME MODALI -->
   <div id="docViewerModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
     <div class="custom-card max-w-lg w-full rounded-2xl p-4 space-y-3">
       <div class="flex justify-between items-center border-b border-slate-700/50 pb-2">
@@ -576,7 +644,7 @@
     </div>
   </div>
 
-  <!-- ALT KAVİSLİ NAVİGASYON -->
+  <!-- ALT NAVİGASYON -->
   <nav class="fixed bottom-0 left-0 w-full backdrop-blur-xl border-t z-40 pb-2">
     <div class="flex justify-around items-center max-w-md mx-auto pt-2">
       <button onclick="switchTab('dashboard')" id="navDashboard" class="flex flex-col items-center py-1 px-3 rounded-2xl bg-blue-600/20 text-cyan-500 font-bold">
@@ -619,7 +687,6 @@
       const meta = themeMeta[t];
       document.getElementById("metaThemeColor").setAttribute("content", meta.color);
       document.getElementById("themeIcon").innerText = meta.icon;
-      document.getElementById("themeName").innerText = meta.name;
       if (typeof renderAll === "function") renderAll();
     }
 
@@ -636,8 +703,117 @@
       }
     }
 
-    // 2. ARAÇ PROFİLİ YÖNETİMİ (Varsayılan İsimsiz / Özelleştirilebilir)
-    const defaultProfile = { name: "Aracım", desc: "Kayıtlı Veri Yok • Güncelleyin" };
+    // 2. ÖRNEK (SAHTE) GERÇEKÇİ VERİLER: 2025 VE 2026
+    const sampleFuels = [
+      // 2025 Dolumları
+      { id: "f25_1", date: "2025-04-10", km: 2800, station: "Opet", branch: "Şirintepe", liters: 41.0, total: 1720, isFull: true, dashL100: 5.8 },
+      { id: "f25_2", date: "2025-05-18", km: 3550, station: "Shell", branch: "Çevre Yolu", liters: 42.5, total: 1810, isFull: true, dashL100: 5.7 },
+      { id: "f25_3", date: "2025-06-25", km: 4320, station: "Opet", branch: "Şirintepe", liters: 44.0, total: 1910, isFull: true, dashL100: 5.6 },
+      { id: "f25_4", date: "2025-08-14", km: 5100, station: "BP", branch: "Bursa Yolu", liters: 43.8, total: 1945, isFull: true, dashL100: 5.9 },
+      { id: "f25_5", date: "2025-10-02", km: 5880, station: "Opet", branch: "Şirintepe", liters: 42.0, total: 1890, isFull: true, dashL100: 5.5 },
+      { id: "f25_6", date: "2025-11-20", km: 6600, station: "Petrol Ofisi", branch: "Organize", liters: 40.5, total: 1850, isFull: true, dashL100: 5.7 },
+      
+      // 2026 Dolumları
+      { id: "f26_1", date: "2026-01-15", km: 7450, station: "Opet", branch: "Şirintepe", liters: 43.2, total: 1980, isFull: true, dashL100: 5.9 },
+      { id: "f26_2", date: "2026-03-22", km: 8250, station: "Shell", branch: "Çevre Yolu", liters: 44.5, total: 2060, isFull: true, dashL100: 5.6 },
+      { id: "f26_3", date: "2026-05-30", km: 9050, station: "Opet", branch: "Şirintepe", liters: 42.8, total: 2010, isFull: true, dashL100: 5.4 },
+      { id: "f26_4", date: "2026-07-18", km: 9850, station: "Opet", branch: "Şirintepe", liters: 43.5, total: 2075, isFull: true, dashL100: 5.5 },
+      { id: "f26_5", date: "2026-08-28", km: 10650, station: "Shell", branch: "Batıkent", liters: 44.0, total: 2130, isFull: true, dashL100: 5.7 },
+      { id: "f26_6", date: "2026-09-22", km: 11420, station: "Opet", branch: "Şirintepe", liters: 42.5, total: 2080, isFull: true, dashL100: 5.5 }
+    ];
+
+    const sampleExpenses = [
+      // 2025 Giderleri
+      { id: "e25_1", date: "2025-01-20", type: "MTV (1. Taksit - Ocak)", amount: 2450, desc: "2025 1. taksit ödendi" },
+      { id: "e25_2", date: "2025-04-25", type: "Periyodik Bakım", amount: 6200, desc: "Yıllık ilk periyodik bakım ve yağ değişimi" },
+      { id: "e25_3", date: "2025-06-10", type: "Kasko", amount: 12500, desc: "2025 tam kasko poliçesi" },
+      { id: "e25_4", date: "2025-07-15", type: "MTV (2. Taksit - Temmuz)", amount: 2450, desc: "2025 2. taksit ödendi" },
+      { id: "e25_5", date: "2025-09-12", type: "Lastik Tamir / Değişim", amount: 200, desc: "Sağ ön lastik fitil yama işlemi" },
+
+      // 2026 Giderleri
+      { id: "e26_1", date: "2026-01-22", type: "MTV (1. Taksit - Ocak)", amount: 3100, desc: "2026 1. taksit ödendi" },
+      { id: "e26_2", date: "2026-05-15", type: "Periyodik Bakım", amount: 7900, desc: "10.000 KM bakımı ve filtreler" },
+      { id: "e26_3", date: "2026-06-12", type: "Kasko", amount: 15400, desc: "2026 kasko yenileme" },
+      { id: "e26_4", date: "2026-06-12", type: "Trafik Sigortası", amount: 4100, desc: "Zorunlu trafik sigortası" },
+      { id: "e26_5", date: "2026-07-20", type: "MTV (2. Taksit - Temmuz)", amount: 3100, desc: "2026 2. taksit ödendi" },
+      { id: "e26_6", date: "2026-08-10", type: "Lastik Tamir / Değişim", amount: 300, desc: "Sol arka lastik sibop değişimi ve balans" }
+    ];
+
+    const sampleTires = {
+      activeSet: "summer",
+      summer: {
+        sol_on: { status: "Sorunsuz", cost: 0, note: "" },
+        sag_on: { status: "Fitil / Yama Yapıldı", cost: 200, note: "Çivi tamiri" },
+        sol_arka: { status: "Tamir Gördü (Balans/Sibop)", cost: 300, note: "Sibop yenilendi" },
+        sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
+        mountedKm: 7450
+      },
+      winter: {
+        sol_on: { status: "Sorunsuz", cost: 0, note: "" },
+        sag_on: { status: "Sorunsuz", cost: 0, note: "" },
+        sol_arka: { status: "Sorunsuz", cost: 0, note: "" },
+        sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
+        mountedKm: 5880
+      }
+    };
+
+    // İlk açılışta veya kayıt boşsa sahte verileri yükle
+    let fuels = JSON.parse(localStorage.getItem("oto_fuels_v5"));
+    let expenses = JSON.parse(localStorage.getItem("oto_expenses_v5"));
+    let tireData = JSON.parse(localStorage.getItem("oto_tires_v5"));
+
+    if (!fuels) {
+      fuels = sampleFuels;
+      localStorage.setItem("oto_fuels_v5", JSON.stringify(fuels));
+    }
+    if (!expenses) {
+      expenses = sampleExpenses;
+      localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
+    }
+    if (!tireData) {
+      tireData = sampleTires;
+      localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
+    }
+
+    // 3. YIL YÖNETİMİ
+    const currentSystemYear = new Date().getFullYear().toString();
+    let selectedYear = localStorage.getItem("oto_selected_year") || currentSystemYear;
+
+    function populateYearSelector() {
+      const yearSelect = document.getElementById("globalYearSelect");
+      const yearsSet = new Set();
+      yearsSet.add("2026");
+      yearsSet.add("2025");
+
+      fuels.forEach(f => { if (f.date) yearsSet.add(f.date.substring(0, 4)); });
+      expenses.forEach(e => { if (e.date) yearsSet.add(e.date.substring(0, 4)); });
+
+      const sortedYears = Array.from(yearsSet).sort().reverse();
+      yearSelect.innerHTML = "";
+
+      sortedYears.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.innerText = y + " Yılı";
+        if (y === selectedYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+      });
+
+      const optAll = document.createElement("option");
+      optAll.value = "all";
+      optAll.innerText = "Tüm Yıllar";
+      if (selectedYear === "all") optAll.selected = true;
+      yearSelect.appendChild(optAll);
+    }
+
+    function changeActiveYear(year) {
+      selectedYear = year;
+      localStorage.setItem("oto_selected_year", year);
+      renderAll();
+    }
+
+    // 4. ARAÇ PROFİLİ
+    const defaultProfile = { name: "Dacia Sandero", desc: "1.0 TCe • 11.420 KM" };
     let carProfile = JSON.parse(localStorage.getItem("oto_profile_v1")) || defaultProfile;
 
     function applyCarProfile() {
@@ -653,24 +829,57 @@
       carProfile = { name, desc };
       localStorage.setItem("oto_profile_v1", JSON.stringify(carProfile));
       applyCarProfile();
-      alert("Araç bilgileri başarıyla güncellendi!");
+      alert("Araç bilgileri güncellendi!");
     }
 
-    // 3. ÇİFT SETLİ LASTİK YÖNETİMİ (Yazlık ☀️ & Kışlık ❄️)
-    let activeSeasonTab = "summer"; // "summer" | "winter"
-    const emptySet = {
-      sol_on: { status: "Sorunsuz", cost: 0, note: "" },
-      sag_on: { status: "Sorunsuz", cost: 0, note: "" },
-      sol_arka: { status: "Sorunsuz", cost: 0, note: "" },
-      sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
-      mountedKm: 0
-    };
+    // 5. GÜVENLİ VERİ SIFIRLAMA ("EVET" ONAYLI)
+    function wipeAllDataSecurely() {
+      const inputVal = (document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase();
+      if (inputVal !== "EVET") {
+        alert("⚠️ Hata: Verilerin silinmesi için kutucuğa büyük harflerle EVET yazmalısınız.");
+        return;
+      }
 
-    let tireData = JSON.parse(localStorage.getItem("oto_tires_v4")) || {
-      activeSet: "summer", // araçta takılı olan
-      summer: JSON.parse(JSON.stringify(emptySet)),
-      winter: JSON.parse(JSON.stringify(emptySet))
-    };
+      if (confirm("Son Uyarı: Tüm verileriniz kalıcı olarak sıfırlanacak. Emin misiniz?")) {
+        fuels = [];
+        expenses = [];
+        tireData = {
+          activeSet: "summer",
+          summer: {
+            sol_on: { status: "Sorunsuz", cost: 0, note: "" },
+            sag_on: { status: "Sorunsuz", cost: 0, note: "" },
+            sol_arka: { status: "Sorunsuz", cost: 0, note: "" },
+            sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
+            mountedKm: 0
+          },
+          winter: {
+            sol_on: { status: "Sorunsuz", cost: 0, note: "" },
+            sag_on: { status: "Sorunsuz", cost: 0, note: "" },
+            sol_arka: { status: "Sorunsuz", cost: 0, note: "" },
+            sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
+            mountedKm: 0
+          }
+        };
+        carProfile = { name: "Aracım", desc: "Kayıtlı Veri Yok" };
+
+        localStorage.setItem("oto_fuels_v5", JSON.stringify(fuels));
+        localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
+        localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
+        localStorage.setItem("oto_profile_v1", JSON.stringify(carProfile));
+
+        document.getElementById("wipeConfirmInput").value = "";
+        selectedYear = currentSystemYear;
+        localStorage.setItem("oto_selected_year", currentSystemYear);
+
+        populateYearSelector();
+        renderAll();
+        alert("✓ Tüm veriler başarıyla temizlendi ve uygulama sıfırlandı!");
+        switchTab("dashboard");
+      }
+    }
+
+    // 6. LASTİK FONKSİYONLARI
+    let activeSeasonTab = "summer";
 
     function switchTireSeason(season) {
       activeSeasonTab = season;
@@ -694,9 +903,9 @@
       const latestKm = fuels.length > 0 ? fuels[fuels.length - 1].km : 0;
       tireData.activeSet = activeSeasonTab;
       tireData[activeSeasonTab].mountedKm = latestKm;
-      localStorage.setItem("oto_tires_v4", JSON.stringify(tireData));
+      localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
       renderTiresUI();
-      alert(`Aktif set "${activeSeasonTab === 'summer' ? 'Yazlık' : 'Kışlık'}" olarak işaretlendi! (Takılma KM: ${latestKm})`);
+      alert(`Aktif set "${activeSeasonTab === 'summer' ? 'Yazlık' : 'Kışlık'}" yapıldı.`);
     }
 
     function openTireModal(pos) {
@@ -718,7 +927,7 @@
       const note = document.getElementById("tNote").value.trim();
 
       tireData[activeSeasonTab][pos] = { status, cost, note };
-      localStorage.setItem("oto_tires_v4", JSON.stringify(tireData));
+      localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
 
       if (cost > 0) {
         const names = { sol_on: "Sol Ön", sag_on: "Sağ Ön", sol_arka: "Sol Arka", sag_arka: "Sağ Arka" };
@@ -729,10 +938,11 @@
           amount: cost,
           desc: `${activeSeasonTab === 'summer' ? 'Yazlık' : 'Kışlık'} ${names[pos]} lastik: ${status} (${note || 'İşlem'})`
         });
-        localStorage.setItem("oto_expenses_v4", JSON.stringify(expenses));
+        localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
       }
 
       closeModal("tireModal");
+      populateYearSelector();
       renderAll();
     }
 
@@ -752,7 +962,6 @@
         btnActive.classList.remove("hidden");
       }
 
-      // KM ve rotasyon
       const currentCarKm = fuels.length > 0 ? fuels[fuels.length - 1].km : 0;
       const mountedKm = set.mountedKm || 0;
       document.getElementById("tireMountedKm").innerText = mountedKm > 0 ? `${mountedKm.toLocaleString('tr-TR')} km` : "--";
@@ -776,16 +985,22 @@
       });
     }
 
-    // 4. VERİ DEPOLAMA (Sıfır Tertemiz Başlangıç)
-    let fuels = JSON.parse(localStorage.getItem("oto_fuels_v4")) || [];
-    let expenses = JSON.parse(localStorage.getItem("oto_expenses_v4")) || [];
-
+    // 7. YILLIK FİLTRE & METRİK HESAPLARI
     let priceChart = null;
     let monthlyKmChart = null;
     let monthlyFuelChart = null;
     let turboTimer = null;
 
-    // FİŞ/BELGE SIKIŞTIRMA (Canvas Compression)
+    function getFilteredFuels() {
+      if (selectedYear === "all") return fuels;
+      return fuels.filter(f => f.date && f.date.startsWith(selectedYear));
+    }
+
+    function getFilteredExpenses() {
+      if (selectedYear === "all") return expenses;
+      return expenses.filter(e => e.date && e.date.startsWith(selectedYear));
+    }
+
     function handleDocCompress(event, targetHiddenId) {
       const file = event.target.files[0];
       if (!file) return;
@@ -856,36 +1071,36 @@
       const btn = document.getElementById("headerTurboBtn");
       const text = document.getElementById("headerTurboText");
 
-      btn.className = "flex items-center gap-1.5 bg-rose-600/30 border border-rose-500 text-rose-400 text-xs px-3 py-1.5 rounded-full font-bold animate-pulse";
-      text.innerText = `Kalan: ${left}s`;
+      btn.className = "flex items-center gap-1 bg-rose-600/30 border border-rose-500 text-rose-400 text-xs px-2.5 py-1.5 rounded-full font-bold animate-pulse";
+      text.innerText = `${left}s`;
 
       turboTimer = setInterval(() => {
         left--;
         if (left <= 0) {
           clearInterval(turboTimer);
-          text.innerText = "Kapatılabilir!";
-          btn.className = "flex items-center gap-1.5 bg-emerald-600/30 border border-emerald-500 text-emerald-400 text-xs px-3 py-1.5 rounded-full font-bold";
+          text.innerText = "OK";
+          btn.className = "flex items-center gap-1 bg-emerald-600/30 border border-emerald-500 text-emerald-400 text-xs px-2.5 py-1.5 rounded-full font-bold";
           setTimeout(() => {
-            text.innerText = "Turbo 30s";
-            btn.className = "flex items-center gap-1.5 custom-card text-xs px-3 py-1.5 rounded-full font-semibold";
+            text.innerText = "30s";
+            btn.className = "flex items-center gap-1 custom-card text-xs px-2.5 py-1.5 rounded-full font-semibold";
           }, 3500);
         } else {
-          text.innerText = `Kalan: ${left}s`;
+          text.innerText = `${left}s`;
         }
       }, 1000);
     }
 
-    function calculateFuelMetrics() {
-      fuels.sort((a, b) => a.km - b.km);
-      let list = [];
+    function calculateFuelMetrics(listToCalc) {
+      const list = (listToCalc || fuels).slice().sort((a, b) => a.km - b.km);
+      let res = [];
       let pendingLiters = 0;
       let lastFullIndex = -1;
 
-      for (let i = 0; i < fuels.length; i++) {
-        let f = { ...fuels[i], consumption: null };
+      for (let i = 0; i < list.length; i++) {
+        let f = { ...list[i], consumption: null };
         if (f.isFull) {
           if (lastFullIndex !== -1) {
-            let dist = f.km - fuels[lastFullIndex].km;
+            let dist = f.km - list[lastFullIndex].km;
             let totalL = pendingLiters + f.liters;
             if (dist > 0) f.consumption = ((totalL / dist) * 100).toFixed(2);
           }
@@ -894,9 +1109,9 @@
         } else {
           pendingLiters += f.liters;
         }
-        list.push(f);
+        res.push(f);
       }
-      return list;
+      return res;
     }
 
     function processMonthlyData(calcFuels) {
@@ -933,20 +1148,27 @@
 
     function renderAll() {
       applyCarProfile();
-      const calcFuels = calculateFuelMetrics();
+      
+      const filteredFuels = getFilteredFuels();
+      const filteredExpenses = getFilteredExpenses();
+      const calcFuels = calculateFuelMetrics(filteredFuels);
+
+      const periodLabel = selectedYear === "all" ? "Tüm Yıllar (Genel Toplam)" : `${selectedYear} Yılı`;
+      document.getElementById("dashPeriodTitle").innerText = `Dönem: ${periodLabel}`;
+      document.getElementById("fuelPeriodIndicator").innerText = `Gösterilen: ${periodLabel}`;
+      document.getElementById("dashTotalEntries").innerText = `${filteredFuels.length + filteredExpenses.length} Kayıt`;
 
       let totalFuelCost = 0;
       let totalLiters = 0;
-      calcFuels.forEach(f => {
+      filteredFuels.forEach(f => {
         totalFuelCost += parseFloat(f.total);
         totalLiters += parseFloat(f.liters);
       });
 
-      // Sabit vs Değişken maliyet ayrımı
       let fixedCost = 0;
       let variableCost = totalFuelCost;
 
-      expenses.forEach(e => {
+      filteredExpenses.forEach(e => {
         const amt = parseFloat(e.amount);
         if (e.type.includes("MTV") || e.type.includes("Kasko") || e.type.includes("Sigortası") || e.type.includes("Muayene")) {
           fixedCost += amt;
@@ -970,7 +1192,7 @@
           let latest = validCons[validCons.length - 1];
           let avg = (validCons.reduce((a, b) => a + b, 0) / validCons.length).toFixed(2);
           document.getElementById("statLatestCons").innerText = latest.toFixed(2);
-          document.getElementById("statAvgCons").innerText = `Genel Ort: ${avg} L`;
+          document.getElementById("statAvgCons").innerText = `Dönem Ort: ${avg} L`;
         }
 
         if (diffKm > 0) {
@@ -978,7 +1200,7 @@
         }
       } else {
         document.getElementById("statLatestCons").innerText = "--";
-        document.getElementById("statAvgCons").innerText = "Genel Ort: -- L";
+        document.getElementById("statAvgCons").innerText = "Dönem Ort: -- L";
         document.getElementById("statCostPerKm").innerText = "--";
         document.getElementById("statTotalDistance").innerText = "Mesafe: 0 km";
       }
@@ -1002,7 +1224,7 @@
       );
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center custom-muted text-xs">Kayıtlı yakıt verisi bulunmuyor.</div>`;
+        container.innerHTML = `<div class="p-6 text-center custom-muted text-xs">Bu dönemde (${selectedYear === 'all' ? 'Tümü' : selectedYear}) kayıtlı yakıt verisi yok.</div>`;
         return;
       }
 
@@ -1040,14 +1262,14 @@
       container.innerHTML = "";
 
       const query = (document.getElementById("expenseSearchInput")?.value || "").toLowerCase();
-      const filtered = expenses.filter(item => 
+      const filtered = getFilteredExpenses().filter(item => 
         item.type.toLowerCase().includes(query) || 
         (item.desc && item.desc.toLowerCase().includes(query)) ||
         item.date.includes(query)
       );
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center custom-muted text-xs">Kayıtlı gider verisi bulunmuyor.</div>`;
+        container.innerHTML = `<div class="p-6 text-center custom-muted text-xs">Bu dönemde (${selectedYear === 'all' ? 'Tümü' : selectedYear}) kayıtlı gider verisi yok.</div>`;
         return;
       }
 
@@ -1214,9 +1436,10 @@
     function saveFuel(e) {
       e.preventDefault();
       const id = document.getElementById("fId").value || Date.now().toString();
+      const dateVal = document.getElementById("fDate").value;
       const record = {
         id,
-        date: document.getElementById("fDate").value,
+        date: dateVal,
         km: parseFloat(document.getElementById("fKm").value),
         station: document.getElementById("fStation").value,
         branch: document.getElementById("fBranch").value.trim(),
@@ -1231,15 +1454,23 @@
       if (idx > -1) fuels[idx] = record;
       else fuels.push(record);
 
-      localStorage.setItem("oto_fuels_v4", JSON.stringify(fuels));
+      localStorage.setItem("oto_fuels_v5", JSON.stringify(fuels));
       closeModal("fuelModal");
+
+      const entryYear = dateVal.substring(0, 4);
+      if (selectedYear !== "all" && selectedYear !== entryYear) {
+        selectedYear = entryYear;
+        localStorage.setItem("oto_selected_year", entryYear);
+      }
+      populateYearSelector();
       renderAll();
     }
 
     function deleteFuel(id) {
       if (confirm("Bu yakıt kaydını silmek istediğinize emin misiniz?")) {
         fuels = fuels.filter(x => x.id !== id);
-        localStorage.setItem("oto_fuels_v4", JSON.stringify(fuels));
+        localStorage.setItem("oto_fuels_v5", JSON.stringify(fuels));
+        populateYearSelector();
         renderAll();
       }
     }
@@ -1269,9 +1500,10 @@
     function saveExpense(e) {
       e.preventDefault();
       const id = document.getElementById("eId").value || Date.now().toString();
+      const dateVal = document.getElementById("eDate").value;
       const record = {
         id,
-        date: document.getElementById("eDate").value,
+        date: dateVal,
         type: document.getElementById("eType").value,
         amount: parseFloat(document.getElementById("eAmount").value),
         desc: document.getElementById("eDesc").value.trim(),
@@ -1281,15 +1513,23 @@
       if (idx > -1) expenses[idx] = record;
       else expenses.push(record);
 
-      localStorage.setItem("oto_expenses_v4", JSON.stringify(expenses));
+      localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
       closeModal("expenseModal");
+
+      const entryYear = dateVal.substring(0, 4);
+      if (selectedYear !== "all" && selectedYear !== entryYear) {
+        selectedYear = entryYear;
+        localStorage.setItem("oto_selected_year", entryYear);
+      }
+      populateYearSelector();
       renderAll();
     }
 
     function deleteExpense(id) {
       if (confirm("Bu gideri silmek istediğinize emin misiniz?")) {
         expenses = expenses.filter(x => x.id !== id);
-        localStorage.setItem("oto_expenses_v4", JSON.stringify(expenses));
+        localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
+        populateYearSelector();
         renderAll();
       }
     }
@@ -1360,11 +1600,12 @@
           if (parsed.tires) tireData = parsed.tires;
           if (parsed.profile) carProfile = parsed.profile;
 
-          localStorage.setItem("oto_fuels_v4", JSON.stringify(fuels));
-          localStorage.setItem("oto_expenses_v4", JSON.stringify(expenses));
-          localStorage.setItem("oto_tires_v4", JSON.stringify(tireData));
+          localStorage.setItem("oto_fuels_v5", JSON.stringify(fuels));
+          localStorage.setItem("oto_expenses_v5", JSON.stringify(expenses));
+          localStorage.setItem("oto_tires_v5", JSON.stringify(tireData));
           localStorage.setItem("oto_profile_v1", JSON.stringify(carProfile));
 
+          populateYearSelector();
           renderAll();
           alert("Yedek başarıyla yüklendi!");
         } catch {
@@ -1375,6 +1616,7 @@
     }
 
     applyTheme(currentTheme);
+    populateYearSelector();
     renderAll();
   </script>
 </body>
