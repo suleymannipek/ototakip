@@ -35,7 +35,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swScript = `
-          const CACHE_NAME = 'ototakip-offline-v8';
+          const CACHE_NAME = 'ototakip-offline-v9';
           const ASSETS = [
             './',
             './index.html',
@@ -135,11 +135,18 @@
     .custom-input { background-color: var(--input-bg) !important; border-color: var(--card-border) !important; color: var(--text-main) !important; }
     .custom-muted { color: var(--text-muted) !important; }
     nav { background-color: var(--nav-bg) !important; border-color: var(--card-border) !important; }
+
+    /* Tam Ekran Yatay Grafik Konteyneri */
+    #landscapeModalContent {
+      width: 96vw;
+      height: 75vh;
+      max-width: 900px;
+    }
   </style>
 </head>
 <body class="min-h-screen">
 
-  <!-- Header (Ana Ekran Sadeleştirildi) -->
+  <!-- Header -->
   <header class="sticky top-0 z-30 backdrop-blur-md border-b px-3 py-2 flex justify-between items-center shadow-md">
     <div class="flex items-center gap-2 min-w-0">
       <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-base shadow flex-shrink-0">🚗</div>
@@ -314,52 +321,59 @@
         </div>
       </div>
 
-      <div class="custom-card p-3 rounded-xl shadow">
+      <!-- GRAFİK 1: AYLIK YOL (DOKUNUNCA YATAY BÜYÜR) -->
+      <div onclick="openLandscapeChart('km')" class="custom-card p-3 rounded-xl shadow cursor-pointer hover:border-blue-500/50 transition-all">
         <div class="flex justify-between items-start mb-1.5">
           <div>
             <h4 class="text-xs font-bold flex items-center gap-1">
               <span class="text-blue-500">📈</span> Aylık Yol Analizi
+              <span class="text-[10px] text-blue-400 font-normal">⛶ Büyüt</span>
             </h4>
             <p id="kmDiffSummary" class="text-[10px] custom-muted mt-0.5">Veri girildiğinde hesaplanır...</p>
           </div>
           <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">KM Bar</span>
         </div>
-        <div class="h-36 w-full"><canvas id="monthlyKmCanvas"></canvas></div>
+        <div class="h-36 w-full pointer-events-none"><canvas id="monthlyKmCanvas"></canvas></div>
       </div>
 
-      <div class="custom-card p-3 rounded-xl shadow">
+      <!-- GRAFİK 2: AYLIK YAKIT TRENDİ (DOKUNUNCA YATAY BÜYÜR) -->
+      <div onclick="openLandscapeChart('fuel')" class="custom-card p-3 rounded-xl shadow cursor-pointer hover:border-amber-500/50 transition-all">
         <div class="flex justify-between items-start mb-1.5">
           <div>
             <h4 class="text-xs font-bold flex items-center gap-1">
               <span class="text-amber-500">⛽</span> Aylık Yakıt Trendi (₺)
+              <span class="text-[10px] text-amber-400 font-normal">⛶ Büyüt</span>
             </h4>
             <p id="fuelDiffSummary" class="text-[10px] custom-muted mt-0.5">Veri girildiğinde hesaplanır...</p>
           </div>
           <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-400 border border-amber-700/50">Toplam</span>
         </div>
-        <div class="h-36 w-full"><canvas id="monthlyFuelCanvas"></canvas></div>
+        <div class="h-36 w-full pointer-events-none"><canvas id="monthlyFuelCanvas"></canvas></div>
       </div>
 
-      <!-- Pompa Fiyat Eğrisi (Kronolojik Tarihe Göre Düzeltildi) -->
-      <div class="custom-card p-3 rounded-xl shadow">
-        <div class="mb-2">
-          <h4 class="text-xs font-bold flex items-center gap-1">
-            <span class="text-cyan-500">📊</span> Pompa Litre Fiyat Trendi (₺ / L)
-          </h4>
-          <p class="text-[10px] custom-muted">Kronolojik akaryakıt birim fiyat eğrisi</p>
+      <!-- GRAFİK 3: POMPA FİYAT EĞRİSİ (DOKUNUNCA YATAY BÜYÜR) -->
+      <div onclick="openLandscapeChart('price')" class="custom-card p-3 rounded-xl shadow cursor-pointer hover:border-cyan-500/50 transition-all">
+        <div class="flex justify-between items-start mb-1.5">
+          <div>
+            <h4 class="text-xs font-bold flex items-center gap-1">
+              <span class="text-cyan-500">📊</span> Pompa Litre Fiyat Trendi (₺ / L)
+              <span class="text-[10px] text-cyan-400 font-normal">⛶ Büyüt</span>
+            </h4>
+            <p class="text-[10px] custom-muted mt-0.5">Kronolojik birim fiyat eğrisi</p>
+          </div>
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-900/40 text-cyan-400 border border-cyan-700/50">Birim</span>
         </div>
-        <div class="h-32 w-full"><canvas id="priceTrendCanvas"></canvas></div>
+        <div class="h-32 w-full pointer-events-none"><canvas id="priceTrendCanvas"></canvas></div>
       </div>
     </div>
 
-    <!-- 2. SEKME: YAKIT LİSTESİ (İKİ AYRI BUTON: YAKIT & KM) -->
+    <!-- 2. SEKME: YAKIT LİSTESİ -->
     <div id="tabFuel" class="space-y-2.5 hidden">
       <div class="flex justify-between items-center mb-1">
         <div>
           <h3 class="text-xs font-bold">Yakıt & Kilometre Kayıtları</h3>
           <p id="fuelPeriodIndicator" class="text-[10px] text-cyan-400 font-medium"></p>
         </div>
-        <!-- İki Ayrı Buton -->
         <div class="flex items-center gap-1.5">
           <button onclick="openOdoModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-2 py-1.5 rounded-lg flex items-center gap-1 shadow">
             <span>📍</span> Sadece KM
@@ -478,7 +492,7 @@
       </div>
     </div>
 
-    <!-- 5. SEKME: YEDEK, AYARLAR (DEPO KAPASİTESİ & LPG ENTEGRASYONU) -->
+    <!-- 5. SEKME: YEDEK, AYARLAR -->
     <div id="tabBackup" class="space-y-3 hidden">
       <div class="custom-card p-3.5 rounded-xl shadow space-y-2.5">
         <h3 class="text-xs font-bold flex items-center gap-1.5">
@@ -494,7 +508,6 @@
             <input type="text" id="cfgCarDesc" placeholder="örn: 1.0 TCe" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-xs" />
           </div>
 
-          <!-- Depo Kapasitesi (Manuel) -->
           <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-700/30">
             <div>
               <label class="custom-muted text-[11px]">Benzin/Dizel Depo (L)</label>
@@ -506,7 +519,6 @@
             </div>
           </div>
 
-          <!-- LPG Depo Alanı (Sadece LPG Varsa Açılır) -->
           <div id="lpgConfigField" class="hidden">
             <label class="custom-muted text-[11px]">LPG Tank Kapasitesi (Litre)</label>
             <input type="number" id="cfgLpgTank" placeholder="örn: 40" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-xs font-bold" />
@@ -551,7 +563,28 @@
 
   </main>
 
-  <!-- YAKIT MODALI (LPG Desteği Ekli) -->
+  <!-- TAM EKRAN YATAY GRAFİK MODALI (LANDSCAPE) -->
+  <div id="landscapeChartModal" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 hidden">
+    <div id="landscapeModalContent" class="custom-card rounded-2xl p-4 flex flex-col justify-between border">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-700/40">
+        <div class="flex items-center gap-2">
+          <span class="text-base" id="landscapeChartIcon">📈</span>
+          <h3 id="landscapeChartTitle" class="text-xs font-bold">Grafik Detayı</h3>
+        </div>
+        <button onclick="closeLandscapeChart()" class="text-xs bg-slate-800 px-3 py-1 rounded-full font-bold text-white hover:bg-slate-700">✕ Kapat</button>
+      </div>
+
+      <div class="flex-1 w-full py-2 relative min-h-0">
+        <canvas id="landscapeCanvas"></canvas>
+      </div>
+
+      <div class="text-center text-[10px] custom-muted pt-1 border-t border-slate-700/40">
+        Daha rahat görmek için telefonunuzu yan çevirebilirsiniz.
+      </div>
+    </div>
+  </div>
+
+  <!-- YAKIT MODALI -->
   <div id="fuelModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -667,7 +700,7 @@
     </div>
   </div>
 
-  <!-- GİDER MODALI (Bakıma Özel KM Alanı Ekli) -->
+  <!-- GİDER MODALI -->
   <div id="expenseModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -697,10 +730,9 @@
           </div>
         </div>
 
-        <!-- Periyodik Bakıma Özel Net KM Alanı -->
         <div id="maintenanceKmField">
           <label class="custom-muted text-[10px] text-blue-400 font-bold">Bakım Yapıldığı Andaki KM (ODO)</label>
-          <input type="number" id="eMaintenanceKm" placeholder="örn: 10000 (Sonraki bakım buna göre sayar)" class="w-full mt-0.5 custom-input border border-blue-500/40 p-2 rounded-lg outline-none font-bold" />
+          <input type="number" id="eMaintenanceKm" placeholder="örn: 10000" class="w-full mt-0.5 custom-input border border-blue-500/40 p-2 rounded-lg outline-none font-bold" />
         </div>
 
         <div>
@@ -764,14 +796,14 @@
     </div>
   </div>
 
-  <!-- BELGE ÖNİZLEME MODALI -->
+  <!-- BELGE / PDF GÖRÜNTÜLEYİCİ MODAL (MOBİLDE PDF AÇILMA SORUNU DÜZELTİLDİ) -->
   <div id="docViewerModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3 hidden">
-    <div class="custom-card max-w-sm w-full rounded-xl p-3 space-y-2">
+    <div class="custom-card max-w-sm w-full rounded-xl p-3 space-y-3">
       <div class="flex justify-between items-center border-b border-slate-700/50 pb-1.5">
         <h4 class="text-xs font-bold">📄 Belge / Fiş</h4>
         <button onclick="closeModal('docViewerModal')" class="custom-muted text-base">✕</button>
       </div>
-      <div id="docViewerContent" class="max-h-[60vh] overflow-auto flex items-center justify-center"></div>
+      <div id="docViewerContent" class="max-h-[60vh] overflow-auto flex flex-col items-center justify-center"></div>
       <button onclick="closeModal('docViewerModal')" class="w-full py-2 bg-slate-700 text-white rounded-lg text-xs font-bold">Kapat</button>
     </div>
   </div>
@@ -835,60 +867,16 @@
       }
     }
 
-    // 2. VERİ MODELİ (Örnek Veriler)
-    const sampleFuels = [
-      { id: "f25_1", date: "2025-04-10", km: 2800, station: "Opet", branch: "Şirintepe", fuelType: "Benzin/Dizel", liters: 41.0, total: 1720, isFull: true, dashL100: 5.8 },
-      { id: "f25_2", date: "2025-05-18", km: 3550, station: "Shell", branch: "Çevre Yolu", fuelType: "Benzin/Dizel", liters: 42.5, total: 1810, isFull: true, dashL100: 5.7 },
-      { id: "f25_3", date: "2025-06-25", km: 4320, station: "Opet", branch: "Şirintepe", fuelType: "Benzin/Dizel", liters: 44.0, total: 1910, isFull: true, dashL100: 5.6 },
-      { id: "f25_4", date: "2025-08-14", km: 5100, station: "BP", branch: "Bursa Yolu", fuelType: "Benzin/Dizel", liters: 43.8, total: 1945, isFull: true, dashL100: 5.9 },
-      { id: "f25_5", date: "2025-10-02", km: 5880, station: "Opet", branch: "Şirintepe", fuelType: "Benzin/Dizel", liters: 42.0, total: 1890, isFull: true, dashL100: 5.5 },
-      { id: "f25_6", date: "2025-11-20", km: 6600, station: "Petrol Ofisi", branch: "Organize", fuelType: "Benzin/Dizel", liters: 40.5, total: 1850, isFull: true, dashL100: 5.7 },
-      { id: "f26_1", date: "2026-01-15", km: 7450, station: "Opet", branch: "Şirintepe", fuelType: "Benzin/Dizel", liters: 43.2, total: 1980, isFull: true, dashL100: 5.9 },
-      { id: "f26_2", date: "2026-03-22", km: 8250, station: "Shell", branch: "Çevre Yolu", fuelType: "Benzin/Dizel", liters: 44.5, total: 2060, isFull: true, dashL100: 5.6 },
-      { id: "f26_3", date: "2026-05-30", km: 9050, station: "Opet", branch: "Şirintepe", fuelType: "Benzin/Dizel", liters: 42.8, total: 2010, isFull: true, dashL100: 5.4 },
-      { id: "f26_4", date: "2026-07-18", km: 9850, station: "Opet", branch: "Şirintepe", fuelType: "Benzin/Dizel", liters: 43.5, total: 2075, isFull: true, dashL100: 5.5 },
-      { id: "f26_5", date: "2026-08-28", km: 10650, station: "Shell", branch: "Batıkent", fuelType: "Benzin/Dizel", liters: 44.0, total: 2130, isFull: true, dashL100: 5.7 },
-      { id: "f26_6", date: "2026-09-22", km: 11420, station: "Opet", branch: "Şirintepe", fuelType: "Benzin/Dizel", liters: 42.5, total: 2080, isFull: true, dashL100: 5.5 }
-    ];
-
-    const sampleExpenses = [
-      { id: "e25_1", date: "2025-01-20", type: "MTV (1. Taksit - Ocak)", amount: 2450, desc: "2025 1. taksit" },
-      { id: "e25_2", date: "2025-04-25", type: "Periyodik Bakım", maintenanceKm: 3100, amount: 6200, desc: "İlk periyodik bakım" },
-      { id: "e25_3", date: "2025-06-10", type: "Kasko", amount: 12500, desc: "2025 kasko" },
-      { id: "e25_4", date: "2025-07-15", type: "MTV (2. Taksit - Temmuz)", amount: 2450, desc: "2025 2. taksit" },
-      { id: "e25_5", date: "2025-09-12", type: "Lastik Tamir / Değişim", amount: 200, desc: "Sağ ön fitil" },
-      { id: "e26_1", date: "2026-01-22", type: "MTV (1. Taksit - Ocak)", amount: 3100, desc: "2026 1. taksit" },
-      { id: "e26_2", date: "2026-05-15", type: "Periyodik Bakım", maintenanceKm: 8900, amount: 7900, desc: "Yıllık bakım" },
-      { id: "e26_3", date: "2026-06-12", type: "Kasko", amount: 15400, desc: "2026 kasko" },
-      { id: "e26_4", date: "2026-06-12", type: "Trafik Sigortası", amount: 4100, desc: "Zorunlu trafik" },
-      { id: "e26_5", date: "2026-07-20", type: "MTV (2. Taksit - Temmuz)", amount: 3100, desc: "2026 2. taksit" },
-      { id: "e26_6", date: "2026-08-10", type: "Lastik Tamir / Değişim", amount: 300, desc: "Sol arka sibop" }
-    ];
-
-    const sampleTires = {
+    // 2. VERİ MODELİ
+    let fuels = JSON.parse(localStorage.getItem("oto_fuels_v6")) || [];
+    let odoLogs = JSON.parse(localStorage.getItem("oto_odologs_v6")) || [];
+    let expenses = JSON.parse(localStorage.getItem("oto_expenses_v6")) || [];
+    let tireData = JSON.parse(localStorage.getItem("oto_tires_v6")) || {
       activeSet: "summer",
-      summer: {
-        sol_on: { status: "Sorunsuz", cost: 0, note: "" },
-        sag_on: { status: "Fitil / Yama Yapıldı", cost: 200, note: "Çivi tamiri" },
-        sol_arka: { status: "Tamir Gördü (Balans/Sibop)", cost: 300, note: "Sibop" },
-        sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
-        mountedKm: 7450
-      },
-      winter: {
-        sol_on: { status: "Sorunsuz", cost: 0, note: "" },
-        sag_on: { status: "Sorunsuz", cost: 0, note: "" },
-        sol_arka: { status: "Sorunsuz", cost: 0, note: "" },
-        sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
-        mountedKm: 5880
-      }
+      summer: { sol_on: { status: "Sorunsuz", cost: 0, note: "" }, sag_on: { status: "Sorunsuz", cost: 0, note: "" }, sol_arka: { status: "Sorunsuz", cost: 0, note: "" }, sag_arka: { status: "Sorunsuz", cost: 0, note: "" }, mountedKm: 0 },
+      winter: { sol_on: { status: "Sorunsuz", cost: 0, note: "" }, sag_on: { status: "Sorunsuz", cost: 0, note: "" }, sol_arka: { status: "Sorunsuz", cost: 0, note: "" }, sag_arka: { status: "Sorunsuz", cost: 0, note: "" }, mountedKm: 0 }
     };
 
-    let fuels = JSON.parse(localStorage.getItem("oto_fuels_v6")) || sampleFuels;
-    let odoLogs = JSON.parse(localStorage.getItem("oto_odologs_v6")) || [];
-    let expenses = JSON.parse(localStorage.getItem("oto_expenses_v6")) || sampleExpenses;
-    let tireData = JSON.parse(localStorage.getItem("oto_tires_v6")) || sampleTires;
-
-    // 3. EN SON GİRİLEN KM'Yİ BAZ ALMA MOTORU
     function getLatestVehicleKm() {
       let maxKm = 0;
       fuels.forEach(f => { if (f.km > maxKm) maxKm = f.km; });
@@ -897,14 +885,7 @@
       return maxKm;
     }
 
-    // 4. ARAÇ PROFİLİ, DEPO & LPG YÖNETİMİ
-    const defaultProfile = { 
-      name: "Dacia Sandero", 
-      desc: "1.0 TCe", 
-      fuelTank: 50, 
-      hasLpg: false, 
-      lpgTank: 40 
-    };
+    const defaultProfile = { name: "Dacia Sandero Stepway", desc: "2024", fuelTank: 50, hasLpg: false, lpgTank: 40 };
     let carProfile = JSON.parse(localStorage.getItem("oto_profile_v2")) || defaultProfile;
 
     function applyCarProfile() {
@@ -950,7 +931,6 @@
       alert("Araç ve depo ayarları güncellendi!");
     }
 
-    // 5. YIL FİLTRESİ
     const currentSystemYear = new Date().getFullYear().toString();
     let selectedYear = localStorage.getItem("oto_selected_year") || currentSystemYear;
 
@@ -958,7 +938,6 @@
       const yearSelect = document.getElementById("globalYearSelect");
       const yearsSet = new Set();
       yearsSet.add("2026");
-      yearsSet.add("2025");
 
       fuels.forEach(f => { if (f.date) yearsSet.add(f.date.substring(0, 4)); });
       odoLogs.forEach(o => { if (o.date) yearsSet.add(o.date.substring(0, 4)); });
@@ -988,7 +967,6 @@
       renderAll();
     }
 
-    // 6. GÜVENLİ SIFIRLAMA
     function wipeAllDataSecurely() {
       const inputVal = (document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase();
       if (inputVal !== "EVET") {
@@ -1002,20 +980,8 @@
         expenses = [];
         tireData = {
           activeSet: "summer",
-          summer: {
-            sol_on: { status: "Sorunsuz", cost: 0, note: "" },
-            sag_on: { status: "Sorunsuz", cost: 0, note: "" },
-            sol_arka: { status: "Sorunsuz", cost: 0, note: "" },
-            sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
-            mountedKm: 0
-          },
-          winter: {
-            sol_on: { status: "Sorunsuz", cost: 0, note: "" },
-            sag_on: { status: "Sorunsuz", cost: 0, note: "" },
-            sol_arka: { status: "Sorunsuz", cost: 0, note: "" },
-            sag_arka: { status: "Sorunsuz", cost: 0, note: "" },
-            mountedKm: 0
-          }
+          summer: { sol_on: { status: "Sorunsuz", cost: 0, note: "" }, sag_on: { status: "Sorunsuz", cost: 0, note: "" }, sol_arka: { status: "Sorunsuz", cost: 0, note: "" }, sag_arka: { status: "Sorunsuz", cost: 0, note: "" }, mountedKm: 0 },
+          winter: { sol_on: { status: "Sorunsuz", cost: 0, note: "" }, sag_on: { status: "Sorunsuz", cost: 0, note: "" }, sol_arka: { status: "Sorunsuz", cost: 0, note: "" }, sag_arka: { status: "Sorunsuz", cost: 0, note: "" }, mountedKm: 0 }
         };
         carProfile = { name: "Aracım", desc: "Kayıtlı Veri Yok", fuelTank: 50, hasLpg: false, lpgTank: 40 };
 
@@ -1036,7 +1002,6 @@
       }
     }
 
-    // 7. SADECE KM EKLEME İŞLEMİ
     function openOdoModal() {
       const liveKm = getLatestVehicleKm();
       document.getElementById("mOdoDate").value = new Date().toISOString().split("T")[0];
@@ -1075,7 +1040,6 @@
       }
     }
 
-    // 8. BİRLEŞİK YAKIT & KM LİSTESİ
     function getFilteredCombinedLogs() {
       let combined = [];
 
@@ -1091,7 +1055,6 @@
         }
       });
 
-      // Kronolojik sırala (En yeni en üstte)
       combined.sort((a, b) => new Date(b.date) - new Date(a.date) || b.km - a.km);
       return combined;
     }
@@ -1121,7 +1084,6 @@
         card.className = "custom-card p-3 rounded-xl shadow flex justify-between items-center text-xs";
 
         if (item.isOdoOnly) {
-          // Sadece KM Kartı
           card.innerHTML = `
             <div>
               <div class="flex items-center gap-1.5 mb-0.5">
@@ -1135,7 +1097,6 @@
             </div>
           `;
         } else {
-          // Yakıt Kartı
           card.innerHTML = `
             <div>
               <div class="flex items-center gap-1.5 mb-0.5">
@@ -1149,7 +1110,7 @@
                 ${item.date} • ${item.liters} L • ${(item.total / item.liters).toFixed(2)} ₺/L
               </div>
               ${item.consumption ? `<div class="text-cyan-500 font-bold text-[10px] mt-0.5">Tüketim: ${item.consumption} L/100km</div>` : ''}
-              ${item.docData ? `<button onclick="viewDocument('${item.docData}')" class="mt-1 text-cyan-400 font-bold text-[10px] hover:underline">📄 Fişi İncele</button>` : ''}
+              ${item.docData ? `<button onclick="viewDocument('${item.docData}')" class="mt-1 text-cyan-400 font-bold text-[10px] hover:underline">📄 Belgeyi Aç</button>` : ''}
             </div>
             <div class="text-right">
               <span class="font-black text-sm">₺${parseFloat(item.total).toLocaleString('tr-TR')}</span>
@@ -1164,7 +1125,6 @@
       });
     }
 
-    // 9. GİDER VE BAKIM KM ALANI
     function toggleExpenseFields() {
       const type = document.getElementById("eType").value;
       const kmField = document.getElementById("maintenanceKmField");
@@ -1266,7 +1226,7 @@
             <div class="custom-muted text-[10px]">
               ${item.date} ${item.maintenanceKm ? `• <span class="text-blue-400 font-semibold">${item.maintenanceKm.toLocaleString('tr-TR')} KM</span>` : ''} ${item.desc ? '• ' + item.desc : ''}
             </div>
-            ${item.docData ? `<button onclick="viewDocument('${item.docData}')" class="mt-1 text-cyan-400 font-bold text-[10px] hover:underline">📄 Faturayı İncele</button>` : ''}
+            ${item.docData ? `<button onclick="viewDocument('${item.docData}')" class="mt-1 text-cyan-400 font-bold text-[10px] hover:underline">📄 Belgeyi Aç</button>` : ''}
           </div>
           <div class="text-right">
             <span class="font-black text-sm">₺${parseFloat(item.amount).toLocaleString('tr-TR')}</span>
@@ -1280,20 +1240,16 @@
       });
     }
 
-    // 10. AKILLI HATIRLATICI HESAPLAMA (Bakım KM'sine Göre)
     function calculateSmartReminders() {
       const now = new Date();
       const currentKm = getLatestVehicleKm();
 
-      // 1. Periyodik Bakım (1 Yıl veya 20.000 KM)
       const maintenanceLogs = expenses.filter(e => e.type === "Periyodik Bakım").sort((a,b) => new Date(b.date) - new Date(a.date));
       let mTextVal = "Kayıt Yok", mSubVal = "1 Yıl / 20.000 KM", mColor = "text-slate-400";
 
       if (maintenanceLogs.length > 0) {
         const lastM = maintenanceLogs[0];
         const lastMDate = new Date(lastM.date);
-        
-        // Bakım anında girilmiş özel KM varsa onu baz al
         const lastMKm = lastM.maintenanceKm || 0;
 
         const targetDate = new Date(lastMDate);
@@ -1325,7 +1281,6 @@
       document.getElementById("subRemMaintenanceText").className = `font-extrabold mt-0.5 ${mColor}`;
       document.getElementById("subRemMaintenanceSub").innerText = mSubVal;
 
-      // 2. MTV Hesaplama
       const year = now.getFullYear();
       const jan31 = new Date(year, 0, 31);
       const jul31 = new Date(year, 6, 31);
@@ -1341,7 +1296,6 @@
       document.getElementById("subRemMtvText").innerText = `${mtvDays} gün kaldı`;
       document.getElementById("subRemMtvSub").innerText = labelMtv;
 
-      // 3. Kasko Poliçesi
       const kaskoLogs = expenses.filter(e => e.type === "Kasko").sort((a,b) => new Date(b.date) - new Date(a.date));
       let kTextVal = "Kayıt Yok", kColor = "text-slate-400", kSubVal = "Poliçe ekleyin";
 
@@ -1369,7 +1323,6 @@
       document.getElementById("subRemKaskoText").className = `font-extrabold mt-0.5 ${kColor}`;
       document.getElementById("subRemKaskoSub").innerText = kSubVal;
 
-      // 4. Trafik / Muayene
       const sigortaLogs = expenses.filter(e => e.type === "Trafik Sigortası" || e.type === "TÜVTÜRK Muayene").sort((a,b) => new Date(b.date) - new Date(a.date));
       let sTextVal = "Kayıt Yok", sColor = "text-slate-400", sSubVal = "Geçerlilik süresi";
 
@@ -1417,7 +1370,6 @@
       }
     }
 
-    // 11. LASTİK KONTROLLERİ
     let activeSeasonTab = "summer";
 
     function switchTireSeason(season) {
@@ -1524,14 +1476,14 @@
       });
     }
 
-    // 12. GRAFİK & METRİK HESAPLARI (Tarih Sıralama Düzeltmesi Dahil)
     let priceChart = null;
     let monthlyKmChart = null;
     let monthlyFuelChart = null;
+    let landscapeChartInstance = null;
     let turboTimer = null;
 
     function calculateFuelMetrics(listToCalc) {
-      // Kesin kronolojik tarihe göre sırala
+      // Hem tarihe hem kilometreye göre kesin kronolojik sırala
       const list = (listToCalc || fuels).slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
       let res = [];
       let pendingLiters = 0;
@@ -1654,8 +1606,7 @@
         }
       });
 
-      // 3. Pompa Litre Fiyat Trend Çizgisi (KUSURSUZ KRONOLOJİK SIRALAMA DÜZELTMESİ)
-      // Tarihe göre artan sırala (Temmuz -> Ağustos -> Eylül)
+      // 3. Pompa Litre Fiyat Trend Çizgisi
       const sortedFuelsChronological = calcFuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
       const dates = sortedFuelsChronological.map(f => f.date.substring(5));
       const prices = sortedFuelsChronological.map(f => (f.total / f.liters).toFixed(2));
@@ -1686,6 +1637,115 @@
           }
         }
       });
+    }
+
+    // 13. TAM EKRAN YATAY GRAFİK GÖRÜNTÜLEYİCİ
+    function openLandscapeChart(type) {
+      const modal = document.getElementById("landscapeChartModal");
+      const titleEl = document.getElementById("landscapeChartTitle");
+      const iconEl = document.getElementById("landscapeChartIcon");
+      const ctx = document.getElementById("landscapeCanvas").getContext("2d");
+
+      const filteredFuels = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+      const calcFuels = calculateFuelMetrics(filteredFuels);
+      const monthly = processMonthlyData(calcFuels);
+
+      const gridColor = currentTheme === 'light' ? '#cbd5e1' : (currentTheme === 'oled' ? '#222222' : '#1e2c4f');
+      const textColor = currentTheme === 'light' ? '#475569' : '#94a3b8';
+
+      if (landscapeChartInstance) landscapeChartInstance.destroy();
+
+      if (type === 'km') {
+        iconEl.innerText = "📈";
+        titleEl.innerText = "Aylık Yol Analizi (Kilometre) - Geniş Görünüm";
+        landscapeChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: monthly.labels.length > 0 ? monthly.labels.map(l => l + ". Ay") : ["-"],
+            datasets: [{
+              label: 'Yapılan Yol (km)',
+              data: monthly.kmData.length > 0 ? monthly.kmData : [0],
+              backgroundColor: '#3b82f6',
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: textColor } } },
+            scales: {
+              x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11, weight: 'bold' } } },
+              y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } }
+            }
+          }
+        });
+      } else if (type === 'fuel') {
+        iconEl.innerText = "⛽";
+        titleEl.innerText = "Aylık Akaryakıt Harcaması (TL) - Geniş Görünüm";
+        landscapeChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: monthly.labels.length > 0 ? monthly.labels.map(l => l + ". Ay") : ["-"],
+            datasets: [{
+              label: 'Yakıt Gideri (₺)',
+              data: monthly.costData.length > 0 ? monthly.costData : [0],
+              backgroundColor: '#f59e0b',
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: textColor } } },
+            scales: {
+              x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11, weight: 'bold' } } },
+              y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } }
+            }
+          }
+        });
+      } else if (type === 'price') {
+        iconEl.innerText = "📊";
+        titleEl.innerText = "Pompa Litre Fiyat Trendi (₺/L) - Kronolojik Geniş Görünüm";
+        const sortedFuels = calcFuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+        const labels = sortedFuels.map(f => `${f.date} (${f.station})`);
+        const prices = sortedFuels.map(f => (f.total / f.liters).toFixed(2));
+
+        landscapeChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels.length > 0 ? labels : ["-"],
+            datasets: [{
+              label: 'Litre Fiyatı (₺/L)',
+              data: prices.length > 0 ? prices : [0],
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.15)',
+              fill: true,
+              tension: 0.35,
+              pointBackgroundColor: '#0284c7',
+              pointRadius: 5
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: textColor } } },
+            scales: {
+              x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 } } },
+              y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } }
+            }
+          }
+        });
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closeLandscapeChart() {
+      if (landscapeChartInstance) {
+        landscapeChartInstance.destroy();
+        landscapeChartInstance = null;
+      }
+      document.getElementById("landscapeChartModal").classList.add("hidden");
     }
 
     function renderAll() {
@@ -1725,9 +1785,17 @@
       document.getElementById("statFixedExpense").innerText = `₺${Math.round(fixedCost).toLocaleString('tr-TR')}`;
       document.getElementById("statVariableExpense").innerText = `₺${Math.round(variableCost).toLocaleString('tr-TR')}`;
 
-      if (calcFuels.length >= 2) {
-        let diffKm = calcFuels[calcFuels.length - 1].km - calcFuels[0].km;
-        document.getElementById("statTotalDistance").innerText = `Mesafe: ${diffKm.toLocaleString('tr-TR')} km`;
+      // BİRİM MALİYET DÜZELTMESİ (Kronolojik Mesafe Hesabı)
+      const sortedByDate = calcFuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+      if (sortedByDate.length >= 2) {
+        let diffKm = sortedByDate[sortedByDate.length - 1].km - sortedByDate[0].km;
+        if (diffKm > 0) {
+          document.getElementById("statTotalDistance").innerText = `Mesafe: ${diffKm.toLocaleString('tr-TR')} km`;
+          document.getElementById("statCostPerKm").innerText = (totalFuelCost / diffKm).toFixed(2);
+        } else {
+          document.getElementById("statTotalDistance").innerText = `Mesafe: 0 km`;
+          document.getElementById("statCostPerKm").innerText = "--";
+        }
 
         let validCons = calcFuels.filter(f => f.consumption !== null).map(f => parseFloat(f.consumption));
         if (validCons.length > 0) {
@@ -1735,10 +1803,6 @@
           let avg = (validCons.reduce((a, b) => a + b, 0) / validCons.length).toFixed(2);
           document.getElementById("statLatestCons").innerText = latest.toFixed(2);
           document.getElementById("statAvgCons").innerText = `Dönem Ort: ${avg} L`;
-        }
-
-        if (diffKm > 0) {
-          document.getElementById("statCostPerKm").innerText = (totalFuelCost / diffKm).toFixed(2);
         }
       } else {
         document.getElementById("statLatestCons").innerText = "--";
@@ -1754,7 +1818,6 @@
       calculateSmartReminders();
     }
 
-    // 13. YAKIT MODALI İŞLEMLERİ
     function openFuelModal() {
       document.getElementById("fuelForm").reset();
       document.getElementById("fId").value = "";
@@ -1879,15 +1942,27 @@
       if (el) el.classList.remove('hidden');
     }
 
+    // MOBİL PDF DESTEKLİ BELGE GÖRÜNTÜLEME
     function viewDocument(dataUri) {
       const modal = document.getElementById("docViewerModal");
       const container = document.getElementById("docViewerContent");
       container.innerHTML = "";
 
       if (dataUri.startsWith("data:application/pdf")) {
-        container.innerHTML = `<embed src="${dataUri}" type="application/pdf" class="w-full h-80 rounded border border-slate-700" />`;
+        // PDF ise mobil tarayıcının yerel okuyucusunda açma butonu sun
+        container.innerHTML = `
+          <div class="p-6 text-center space-y-4">
+            <span class="text-4xl">📄</span>
+            <div class="text-xs font-bold text-slate-200">PDF Belgesi Kayıtlı</div>
+            <p class="text-[11px] custom-muted">Telefonunuzun PDF okuyucusunda açmak için aşağıdaki butona dokunun.</p>
+            <a href="${dataUri}" download="belge.pdf" class="inline-block w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg">
+              📄 PDF'i Aç / İndir
+            </a>
+          </div>
+        `;
       } else {
-        container.innerHTML = `<img src="${dataUri}" class="max-w-full max-h-[55vh] rounded object-contain" />`;
+        // Görsel ise pencere içinde göster
+        container.innerHTML = `<img src="${dataUri}" class="max-w-full max-h-[55vh] rounded object-contain shadow" />`;
       }
       modal.classList.remove("hidden");
     }
