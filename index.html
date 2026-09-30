@@ -35,7 +35,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swScript = `
-          const CACHE_NAME = 'ototakip-v2026.09.30-1504';
+          const CACHE_NAME = 'ototakip-v2026.09.30-1600';
           const ASSETS = [
             './',
             './index.html',
@@ -300,7 +300,7 @@
           <div onclick="openLandscapeChart('km')" class="custom-card p-3 rounded-xl shadow cursor-pointer hover:border-blue-500/50 transition-all mt-3">
             <div class="flex justify-between items-start mb-1.5">
               <div>
-                <h4 class="text-xs font-bold flex items-center gap-1"><span class="text-blue-500">📈</span> Aylık Yol Analizi <span class="text-[10px] text-blue-400 font-normal">⛶ Büyüt</span></h4>
+                <h4 class="text-xs font-bold flex items-center gap-1"><span class="text-blue-500">📈</span> Aylık Yol Analizi (Manuel KM Dahil) <span class="text-[10px] text-blue-400 font-normal">⛶ Büyüt</span></h4>
                 <p id="kmDiffSummary" class="text-[10px] custom-muted mt-0.5">Veri girildiğinde hesaplanır...</p>
               </div>
               <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">KM Bar</span>
@@ -311,10 +311,13 @@
           <div onclick="openLandscapeChart('fuel')" class="custom-card p-3 rounded-xl shadow cursor-pointer hover:border-amber-500/50 transition-all">
             <div class="flex justify-between items-start mb-1.5">
               <div>
-                <h4 class="text-xs font-bold flex items-center gap-1"><span class="text-amber-500">⛽</span> Aylık Yakıt Trendi (₺) <span class="text-[10px] text-amber-400 font-normal">⛶ Büyüt</span></h4>
-                <p id="fuelDiffSummary" class="text-[10px] custom-muted mt-0.5">Veri girildiğinde hesaplanır...</p>
+                <h4 class="text-xs font-bold flex items-center gap-1" id="fuelChartTitleHeader"><span class="text-amber-500">⛽</span> Aylık Yakıt Trendi (₺ Tutar) <span class="text-[10px] text-amber-400 font-normal">⛶ Büyüt</span></h4>
+                <p class="text-[10px] custom-muted mt-0.5">Tutar / Litre modu</p>
               </div>
-              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-400 border border-amber-700/50">Toplam</span>
+              <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                <button onclick="toggleFuelChartMode('tl')" id="chartModeBtnTl" class="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-600 text-white shadow">₺ Tutar</button>
+                <button onclick="toggleFuelChartMode('lit')" id="chartModeBtnLit" class="text-[9px] font-bold px-2 py-0.5 rounded custom-card custom-muted">⛽ Litre</button>
+              </div>
             </div>
             <div class="h-36 w-full pointer-events-none"><canvas id="monthlyFuelCanvas"></canvas></div>
           </div>
@@ -367,19 +370,31 @@
       <div id="fuelCardsList" class="space-y-2"></div>
     </div>
 
-    <!-- 3. SEKME: GİDERLER (GENİŞLEYEN KARTLI) -->
+    <!-- 3. SEKME: GİDERLER & ÖDEME YÖNTEMLERİ -->
     <div id="tabExpenses" class="space-y-2.5 hidden">
       <div class="flex justify-between items-center mb-0.5">
         <div>
-          <h3 class="text-xs font-bold">Bakım, Sigorta & MTV</h3>
+          <h3 class="text-xs font-bold">Bakım, Sigorta & Kart Harcamaları</h3>
           <p class="text-[10px] text-cyan-400 font-medium">Tüm Rutin & Sabit Giderler</p>
         </div>
         <button onclick="openExpenseModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow">
           <span>+</span> Gider Ekle
         </button>
       </div>
+
+      <!-- KART / NAKİT HARCAMA ÖZET DAĞILIMI PANELİ -->
+      <div class="custom-card p-3 rounded-xl shadow border-purple-900/40 space-y-2">
+        <div class="flex justify-between items-center border-b border-slate-700/40 pb-1.5">
+          <span class="text-xs font-bold flex items-center gap-1.5 text-purple-400">
+            <span>💳</span> Kart & Ödeme Yöntemi Dağılımı
+          </span>
+          <span id="totalExpCardSum" class="text-[10px] font-black text-white">Toplam: ₺0</span>
+        </div>
+        <div id="paymentBreakdownContainer" class="grid grid-cols-2 gap-2 text-[10px]"></div>
+      </div>
+
       <div class="relative">
-        <input type="text" id="expenseSearchInput" oninput="renderExpenseCards()" placeholder="Kategori veya açıklama ara..." class="w-full text-xs p-2 rounded-xl custom-input border outline-none pl-7" />
+        <input type="text" id="expenseSearchInput" oninput="renderExpenseCards()" placeholder="Kategori, açıklama veya ödeme yöntemi ara..." class="w-full text-xs p-2 rounded-xl custom-input border outline-none pl-7" />
         <span class="absolute left-2 top-2 text-xs custom-muted">🔍</span>
       </div>
 
@@ -541,7 +556,7 @@
       <div class="text-center pt-2 pb-1">
         <button onclick="openChangelogModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full custom-card border border-cyan-800/50 hover:border-cyan-500/80 transition-all shadow-sm">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 15:04</span>
+          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 16:00</span>
           <span class="text-[9px] custom-muted font-medium ml-1">Neler Yeni? ▾</span>
         </button>
       </div>
@@ -564,7 +579,6 @@
       </div>
 
       <div id="expertReportPrintArea" class="flex-1 overflow-y-auto space-y-3 history-scroll pr-1 text-xs">
-        <!-- Araç Başlığı -->
         <div class="p-3 rounded-xl bg-blue-950/30 border border-blue-800/40 flex justify-between items-center">
           <div>
             <div id="repCarName" class="text-sm font-black text-white">Dacia Sandero Stepway</div>
@@ -576,11 +590,8 @@
           </div>
         </div>
 
-        <!-- Bakım & Periyodik Durum -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
-          <h4 class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
-            <span>🛠️</span> Periyodik Bakım Durumu
-          </h4>
+          <h4 class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5"><span>🛠️</span> Periyodik Bakım Durumu</h4>
           <div class="grid grid-cols-2 gap-2 text-[10px]">
             <div><span class="custom-muted block text-[9px]">Son Bakım Tarihi</span><b id="repLastMaintDate">Kayıt Yok</b></div>
             <div><span class="custom-muted block text-[9px]">Son Bakım KM</span><b id="repLastMaintKm">--</b></div>
@@ -589,11 +600,8 @@
           </div>
         </div>
 
-        <!-- Lastik Sağlık Özeti -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
-          <h4 class="text-[11px] font-bold text-cyan-400 flex items-center gap-1.5">
-            <span>🛞</span> Lastik Sağlık & Set Bilgisi
-          </h4>
+          <h4 class="text-[11px] font-bold text-cyan-400 flex items-center gap-1.5"><span>🛞</span> Lastik Sağlık & Set Bilgisi</h4>
           <div class="text-[10px] space-y-1">
             <div class="flex justify-between"><span class="custom-muted">Takılı Set:</span><b id="repTireSet">Yazlık Set</b></div>
             <div class="flex justify-between"><span class="custom-muted">Bu Sezon Yapılan Yol:</span><b id="repTireDist">0 km</b></div>
@@ -606,11 +614,8 @@
           </div>
         </div>
 
-        <!-- Finansal ve Sahiplik Özeti -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
-          <h4 class="text-[11px] font-bold text-pink-400 flex items-center gap-1.5">
-            <span>💰</span> Toplam Harcama ve Tüketim Analizi
-          </h4>
+          <h4 class="text-[11px] font-bold text-pink-400 flex items-center gap-1.5"><span>💰</span> Toplam Harcama ve Tüketim Analizi</h4>
           <div class="grid grid-cols-2 gap-2 text-[10px]">
             <div><span class="custom-muted block text-[9px]">Toplam Yakıt Harcaması</span><b id="repTotalFuel">₺0</b></div>
             <div><span class="custom-muted block text-[9px]">Ortalama Tüketim</span><b id="repAvgCons" class="text-cyan-400">-- L/100km</b></div>
@@ -623,13 +628,13 @@
       <div class="flex gap-2 pt-2 border-t border-slate-700/40 shrink-0">
         <button onclick="closeModal('expertReportModal')" class="flex-1 py-2 custom-card font-bold rounded-xl text-xs">Kapat</button>
         <button onclick="window.print()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs shadow flex items-center justify-center gap-1">
-          <span>🖨️️</span> Yazdır / PDF Kaydet
+          <span>🖨</span> Yazdır / PDF Kaydet
         </button>
       </div>
     </div>
   </div>
 
-  <!-- GÜNCELLEME GÜNLÜĞÜ MODALI (CHANGELOG) -->
+  <!-- GÜNCELLEME GÜNLÜĞÜ MODALI -->
   <div id="changelogModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-3 hidden">
     <div class="custom-card max-w-sm w-full rounded-2xl p-4 space-y-3 border border-cyan-800/60 shadow-xl">
       <div class="flex justify-between items-center border-b border-slate-700/50 pb-2">
@@ -637,60 +642,23 @@
           <span class="text-base">🚀</span>
           <div>
             <h4 class="text-xs font-bold text-white">Sürüm Günlüğü</h4>
-            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 15:04</span>
+            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 16:00</span>
           </div>
         </div>
         <button onclick="closeModal('changelogModal')" class="custom-muted text-base hover:text-white">✕</button>
       </div>
 
       <div class="max-h-[55vh] overflow-y-auto space-y-3 pr-1 text-xs history-scroll">
-        <!-- MEVCUT GÜNCELLEME -->
         <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/40 space-y-1.5">
           <div class="flex justify-between items-center">
-            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (15:04)</span>
+            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (16:00)</span>
             <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-bold border border-emerald-800/50">Mevcut</span>
           </div>
           <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Araç Ekspertiz & Sağlık Raporu (Yazdır / PDF) geri eklendi.</li>
-            <li>Giderler sekmesine dokununca genişleyen detay kartları (akordiyon) entegre edildi.</li>
-            <li>Lastik tamirleri ve periyodik bakım detayları genişleyen gider kartında doğrudan listelenir.</li>
-          </ul>
-        </div>
-
-        <div class="p-2.5 rounded-xl bg-slate-800/20 border border-slate-700/30 space-y-1.5">
-          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (14:54)</div>
-          <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Sadece KM kayıtlarına "Düzenle" seçeneği eklendi.</li>
-            <li>Grafikler tek dokunuşla açılıp kapanan şık bir akordiyon panele alındı.</li>
-            <li>Gündüz temasında hatırlatıcı kutularının kontrastı artırıldı.</li>
-            <li>Yakıt kartlarına dokunulduğunda genişleyen detay paneli eklendi.</li>
-            <li>Yol bilgisayarı sapması ve kalan menzil hesaplama rozeti getirildi.</li>
-            <li>Giderler için hızlı kategori filtre çipleri eklendi.</li>
-          </ul>
-        </div>
-
-        <div class="p-2.5 rounded-xl bg-slate-800/20 border border-slate-700/30 space-y-1.5">
-          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (14:28)</div>
-          <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Yedek & Ayarlar sekmesine 3 kademeli (Küçük/Büyük/İri) metin büyütme ayarı eklendi.</li>
-            <li>Seçilen yazı boyutu kalıcı belleğe bağlandı.</li>
-          </ul>
-        </div>
-
-        <div class="p-2.5 rounded-xl bg-slate-800/20 border border-slate-700/30 space-y-1.5">
-          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (09:21)</div>
-          <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Kalıcı veri koruma mimarisine geçildi (güncelleme yapılsa bile veriler artık ASLA silinmez).</li>
-            <li>Tüm test verileri sıfırlandı; uygulama tamamen temiz veriyle çalışır hale getirildi.</li>
-            <li>Eski sürümlerdeki veriler otomatik olarak kalıcı belleğe aktarıldı.</li>
-          </ul>
-        </div>
-
-        <div class="p-2.5 rounded-xl bg-slate-800/20 border border-slate-700/30 space-y-1.5">
-          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (09:17)</div>
-          <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Saat ve dakika hassasiyeti eklendi.</li>
-            <li>Lastik & Giderler çift yönlü senkronizasyonu tamamlandı.</li>
+            <li>"Sadece KM" (manuel sayaç) kayıtları aylık yol analizi grafiğine tam entegre edildi.</li>
+            <li>Aylık Yakıt Trendi grafiğine [₺ Tutar] ve [⛽ Litre] anlık geçiş butonları eklendi.</li>
+            <li>Yakıt ve Giderler formlarına Ödeme Yöntemi / Kredi Kartı seçimi eklendi.</li>
+            <li>Giderler sekmesine kart bazlı harcama dağılımı ve kategorik kırılım (yakıt, kasko, vergi, bakım) paneli getirildi.</li>
           </ul>
         </div>
       </div>
@@ -741,21 +709,16 @@
         <h3 id="tireActionModalTitle" class="font-bold text-xs">🛞 Lastik İşlemleri</h3>
         <button onclick="closeModal('tireActionModal')" class="custom-muted text-base">✕</button>
       </div>
-      
       <div class="mb-3 border border-slate-700/40 rounded-lg bg-slate-800/20 p-2 overflow-y-auto history-scroll shrink min-h-[80px] max-h-40">
         <h4 class="text-[10px] custom-muted font-bold mb-1.5 uppercase tracking-wider border-b border-slate-700/50 pb-1">Geçmiş İşlemler</h4>
         <div id="tireHistoryList" class="space-y-1.5"></div>
       </div>
-
       <form onsubmit="saveTireAction(event)" class="space-y-2.5 text-xs shrink-0">
         <input type="hidden" id="taPosition" />
         <div class="p-2 border border-slate-700/50 rounded-lg bg-slate-800/40">
           <h4 class="text-[10px] font-bold text-cyan-400 mb-2">➕ Yeni İşlem Ekle</h4>
           <div class="grid grid-cols-2 gap-2 mb-2">
-            <div>
-              <label class="custom-muted text-[9px]">Tarih ve Saat</label>
-              <input type="datetime-local" id="taDate" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-[11px]" />
-            </div>
+            <div><label class="custom-muted text-[9px]">Tarih ve Saat</label><input type="datetime-local" id="taDate" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-[11px]" /></div>
             <div>
               <label class="custom-muted text-[9px]">İşlem / Durum</label>
               <select id="taAction" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-[11px]">
@@ -767,14 +730,8 @@
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="custom-muted text-[9px]">Tutar (₺)</label>
-              <input type="number" step="0.01" id="taCost" placeholder="0.00" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-[11px]" />
-            </div>
-            <div>
-              <label class="custom-muted text-[9px]">Not (Opsiyonel)</label>
-              <input type="text" id="taNote" placeholder="örn: Çivi tamiri" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-[11px]" />
-            </div>
+            <div><label class="custom-muted text-[9px]">Tutar (₺)</label><input type="number" step="0.01" id="taCost" placeholder="0.00" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-[11px]" /></div>
+            <div><label class="custom-muted text-[9px]">Not (Opsiyonel)</label><input type="text" id="taNote" placeholder="örn: Çivi tamiri" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none text-[11px]" /></div>
           </div>
         </div>
         <div class="flex gap-2 pt-1">
@@ -794,18 +751,9 @@
       </div>
       <form onsubmit="saveManualOdo(event)" class="space-y-3 text-xs">
         <input type="hidden" id="mOdoId" />
-        <div>
-          <label class="custom-muted text-[10px]">Tarih ve Saat</label>
-          <input type="datetime-local" id="mOdoDate" required class="w-full mt-1 custom-input border p-2 rounded-lg outline-none" />
-        </div>
-        <div>
-          <label class="custom-muted text-[10px]">Mevcut Kilometre (ODO)</label>
-          <input type="number" id="mOdoInput" required placeholder="örn: 12500" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-bold text-base" />
-        </div>
-        <div>
-          <label class="custom-muted text-[10px]">Açıklama / Not (Opsiyonel)</label>
-          <input type="text" id="mOdoNote" placeholder="örn: Ay sonu sayaç kontrolü" class="w-full mt-1 custom-input border p-2 rounded-lg outline-none" />
-        </div>
+        <div><label class="custom-muted text-[10px]">Tarih ve Saat</label><input type="datetime-local" id="mOdoDate" required class="w-full mt-1 custom-input border p-2 rounded-lg outline-none" /></div>
+        <div><label class="custom-muted text-[10px]">Mevcut Kilometre (ODO)</label><input type="number" id="mOdoInput" required placeholder="örn: 12500" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-bold text-base" /></div>
+        <div><label class="custom-muted text-[10px]">Açıklama / Not (Opsiyonel)</label><input type="text" id="mOdoNote" placeholder="örn: Ay sonu sayaç kontrolü" class="w-full mt-1 custom-input border p-2 rounded-lg outline-none" /></div>
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeModal('odoModal')" class="flex-1 py-2 custom-card font-bold rounded-lg text-xs">Vazgeç</button>
           <button type="submit" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-xs shadow">Kaydet</button>
@@ -814,7 +762,7 @@
     </div>
   </div>
 
-  <!-- YAKIT MODALI -->
+  <!-- YAKIT MODALI (ÖDEME YÖNTEMİ EKLENDİ) -->
   <div id="fuelModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -844,7 +792,21 @@
           <div><label class="custom-muted text-[10px]">Alınan Litre</label><input type="number" step="0.01" id="fLiters" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
           <div><label class="custom-muted text-[10px]">Toplam Tutar (₺)</label><input type="number" step="0.01" id="fTotal" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
         </div>
-        <div><label class="custom-muted text-[10px]">Yol Bilgisayarı (L/100km)</label><input type="number" step="0.1" id="fDashboardL100" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="custom-muted text-[10px]">Yol Bilgisayarı (L/100km)</label><input type="number" step="0.1" id="fDashboardL100" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
+          <div>
+            <label class="custom-muted text-[10px]">Ödeme Yöntemi / Kart</label>
+            <select id="fPaymentMethod" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none font-bold text-cyan-400">
+              <option value="Nakit">💵 Nakit</option>
+              <option value="Kredi Kartı - Bonus">💳 Kredi Kartı - Bonus</option>
+              <option value="Kredi Kartı - Maximum">💳 Kredi Kartı - Maximum</option>
+              <option value="Kredi Kartı - World">💳 Kredi Kartı - World</option>
+              <option value="Kredi Kartı - Axess">💳 Kredi Kartı - Axess</option>
+              <option value="Kredi Kartı - Bankkart">💳 Kredi Kartı - Bankkart</option>
+              <option value="Kredi Kartı - Diğer">💳 Kredi Kartı - Diğer</option>
+            </select>
+          </div>
+        </div>
         <div>
           <label class="custom-muted text-[10px] font-semibold flex justify-between"><span>📷 Fiş / Görsel / PDF</span><span class="text-[9px] text-cyan-400">Otomatik Sıkıştırma</span></label>
           <input type="file" id="fDocInput" accept="image/*,application/pdf" onchange="handleDocCompress(event, 'fDocData')" class="mt-0.5 w-full text-[11px] custom-muted file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white" />
@@ -859,7 +821,7 @@
     </div>
   </div>
 
-  <!-- GİDER MODALI -->
+  <!-- GİDER MODALI (ÖDEME YÖNTEMİ EKLENDİ) -->
   <div id="expenseModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -911,7 +873,22 @@
           </div>
         </div>
 
-        <div><label class="custom-muted text-[10px]">Tutar (₺)</label><input type="number" step="0.01" id="eAmount" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="custom-muted text-[10px]">Tutar (₺)</label><input type="number" step="0.01" id="eAmount" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
+          <div>
+            <label class="custom-muted text-[10px]">Ödeme Yöntemi / Kart</label>
+            <select id="ePaymentMethod" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none font-bold text-cyan-400">
+              <option value="Nakit">💵 Nakit</option>
+              <option value="Kredi Kartı - Bonus">💳 Kredi Kartı - Bonus</option>
+              <option value="Kredi Kartı - Maximum">💳 Kredi Kartı - Maximum</option>
+              <option value="Kredi Kartı - World">💳 Kredi Kartı - World</option>
+              <option value="Kredi Kartı - Axess">💳 Kredi Kartı - Axess</option>
+              <option value="Kredi Kartı - Bankkart">💳 Kredi Kartı - Bankkart</option>
+              <option value="Kredi Kartı - Diğer">💳 Kredi Kartı - Diğer</option>
+            </select>
+          </div>
+        </div>
+
         <div><label class="custom-muted text-[10px]">Açıklama</label><input type="text" id="eDesc" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
         <div>
           <label class="custom-muted text-[10px] font-semibold flex justify-between"><span>📷 Fatura / PDF</span><span class="text-[9px] text-cyan-400">Oto Sıkıştırma</span></label>
@@ -967,7 +944,6 @@
     function cycleTheme() { let idx = themes.indexOf(currentTheme); applyTheme(themes[(idx + 1) % themes.length]); }
     function toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); } else { if (document.exitFullscreen) document.exitFullscreen(); } }
 
-    // METİN BOYUTU
     const fontSizes = {
       small: { size: '14px', label: '%100 (Standart)' },
       medium: { size: '16px', label: '%115 (Büyük)' },
@@ -980,18 +956,13 @@
       currentFontSizeKey = key;
       document.documentElement.style.fontSize = fontSizes[key].size;
       localStorage.setItem("ototakip_font_size", key);
-
       const badge = document.getElementById("currentFontSizeBadge");
       if (badge) badge.innerText = fontSizes[key].label;
-
       const btnSmall = document.getElementById("btnFontSmall");
       const btnMed = document.getElementById("btnFontMed");
       const btnLg = document.getElementById("btnFontLg");
-
       if (btnSmall && btnMed && btnLg) {
-        [btnSmall, btnMed, btnLg].forEach(b => {
-          b.className = "py-2 rounded-lg custom-card border text-[11px] font-bold hover:border-cyan-500 transition-all";
-        });
+        [btnSmall, btnMed, btnLg].forEach(b => { b.className = "py-2 rounded-lg custom-card border text-[11px] font-bold hover:border-cyan-500 transition-all"; });
         if (key === 'small') btnSmall.className = "py-2 rounded-lg bg-blue-600 text-white border border-blue-500 text-[11px] font-bold";
         else if (key === 'medium') btnMed.className = "py-2 rounded-lg bg-blue-600 text-white border border-blue-500 text-[11px] font-bold";
         else if (key === 'large') btnLg.className = "py-2 rounded-lg bg-blue-600 text-white border border-blue-500 text-[11px] font-bold";
@@ -1016,9 +987,7 @@
 
     function getPersistedData(key, legacyKeys, defaultValue) {
       let data = localStorage.getItem(key);
-      if (data) {
-        try { return JSON.parse(data); } catch(e) {}
-      }
+      if (data) { try { return JSON.parse(data); } catch(e) {} }
       for (let lk of legacyKeys) {
         let legacyData = localStorage.getItem(lk);
         if (legacyData) {
@@ -1134,7 +1103,7 @@
     }
 
     function wipeAllDataSecurely() {
-      if ((document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase() !== "EVET") return alert("⚠️️ Silmek için EVET yazın.");
+      if ((document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase() !== "EVET") return alert("⚠️ Silmek için EVET yazın.");
       if (confirm("Kalıcı olarak sıfırlanacak. Emin misiniz?")) {
         fuels = []; odoLogs = []; expenses = []; manualOdo = 0;
         tireData = { 
@@ -1288,8 +1257,7 @@
                   <div class="flex items-center gap-1.5 mb-0.5">
                     <span class="font-extrabold text-xs">${item.km.toLocaleString('tr-TR')} km</span>
                     <span class="bg-blue-900/40 text-blue-400 font-bold px-1.5 py-0.2 rounded text-[10px]">${item.station}</span>
-                    ${item.fuelType === 'LPG' ? '<span class="bg-amber-900/40 text-amber-300 px-1 py-0.2 rounded text-[9px] font-bold">LPG</span>' : ''}
-                    ${item.isFull ? '<span class="bg-emerald-900/40 text-emerald-400 px-1 py-0.2 rounded text-[9px] font-bold">Tam</span>' : ''}
+                    <span class="bg-purple-900/40 text-purple-300 px-1.5 py-0.2 rounded text-[9px] font-bold">${item.paymentMethod || 'Nakit'}</span>
                   </div>
                   <div class="custom-muted text-[10px]">${dateFormatted} • ${item.liters} L • ${unitPrice} ₺/L</div>
                   ${item.consumption ? `<div class="text-cyan-500 font-bold text-[10px] mt-0.5">Tüketim: ${item.consumption} L/100km</div>` : ''}
@@ -1306,24 +1274,22 @@
                 <div class="grid grid-cols-2 gap-2 text-[10px] p-2 bg-slate-900/40 rounded-lg">
                   <div>
                     <span class="custom-muted block text-[9px]">Ara Mesafe</span>
-                    <span class="font-bold text-white">${meta ? meta.dist.toLocaleString('tr-TR') + ' km' : 'İlk dolum / Bilgi yok'}</span>
+                    <span class="font-bold text-white">${meta ? meta.dist.toLocaleString('tr-TR') + ' km' : 'İlk dolum'}</span>
                   </div>
                   <div>
-                    <span class="custom-muted block text-[9px]">Bu Dolum Birim Maliyet</span>
+                    <span class="custom-muted block text-[9px]">Birim Maliyet</span>
                     <span class="font-bold text-emerald-400">${meta ? meta.costPerKm + ' ₺/km' : '--'}</span>
                   </div>
                   <div>
-                    <span class="custom-muted block text-[9px]">İstasyon Şubesi</span>
-                    <span class="font-bold text-slate-300 truncate block">${item.branch || 'Belirtilmedi'}</span>
+                    <span class="custom-muted block text-[9px]">Şube / Ödeme</span>
+                    <span class="font-bold text-slate-300 truncate block">${item.branch || 'Merkez'} • ${item.paymentMethod || 'Nakit'}</span>
                   </div>
                   <div>
-                    <span class="custom-muted block text-[9px]">Pompa Litre Fiyatı</span>
+                    <span class="custom-muted block text-[9px]">Litre Fiyatı</span>
                     <span class="font-bold text-cyan-400">${unitPrice} ₺/L</span>
                   </div>
                 </div>
-
                 ${deviationBadge}
-
                 <div class="flex justify-between items-center pt-1">
                   ${item.docData ? `<button onclick="viewDocument('${item.docData}')" class="text-cyan-400 font-bold text-[11px] flex items-center gap-1"><span>📄</span> Fişi Görüntüle</button>` : '<span></span>'}
                   <div class="flex gap-3 font-bold text-[11px]">
@@ -1367,6 +1333,7 @@
       document.getElementById("eDate").value = exp.date;
       document.getElementById("eType").value = exp.type;
       document.getElementById("eAmount").value = exp.amount;
+      document.getElementById("ePaymentMethod").value = exp.paymentMethod || "Nakit";
       document.getElementById("eDesc").value = exp.desc || "";
       document.getElementById("eMaintenanceKm").value = exp.maintenanceKm || "";
       if (exp.tireSeason) document.getElementById("eTireSeason").value = exp.tireSeason;
@@ -1383,6 +1350,7 @@
       const typeVal = document.getElementById("eType").value;
       const dateVal = document.getElementById("eDate").value;
       const amountVal = parseFloat(document.getElementById("eAmount").value);
+      const payMethodVal = document.getElementById("ePaymentMethod").value;
       const descVal = document.getElementById("eDesc").value.trim();
       const tSyncId = document.getElementById("eTireSyncId").value || ("sync_" + Date.now());
 
@@ -1390,7 +1358,6 @@
       if (typeVal === "Lastik Tamir / Değişim") {
         tireSeason = document.getElementById("eTireSeason").value;
         tirePos = document.getElementById("eTirePos").value;
-
         if (!tireData[tireSeason][tirePos].history) tireData[tireSeason][tirePos].history = [];
         const existIdx = tireData[tireSeason][tirePos].history.findIndex(h => h.syncId === tSyncId);
         const actionObj = { syncId: tSyncId, date: dateVal, action: descVal || "Tamir / Değişim", cost: amountVal, note: "Giderler sekmesinden girildi" };
@@ -1408,6 +1375,7 @@
         tirePos,
         tireSyncId: typeVal === "Lastik Tamir / Değişim" ? tSyncId : null,
         amount: amountVal,
+        paymentMethod: payMethodVal,
         desc: descVal,
         docData: document.getElementById("eDocData").value || null
       };
@@ -1450,12 +1418,69 @@
       renderExpenseCards();
     }
 
-    // GİDERLER: DOKUNUNCA GENİŞLEYEN KART YAPISI
     let expandedExpenses = new Set();
     function toggleExpenseExpansion(id) {
       if (expandedExpenses.has(id)) expandedExpenses.delete(id);
       else expandedExpenses.add(id);
       renderExpenseCards();
+    }
+
+    function renderPaymentBreakdown() {
+      const activeE = expenses.filter(e => selectedYear === "all" || (e.date && e.date.startsWith(selectedYear)));
+      const activeF = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+
+      let summary = {};
+      let grandTotal = 0;
+
+      activeF.forEach(f => {
+        const pm = f.paymentMethod || "Nakit";
+        if (!summary[pm]) summary[pm] = { total: 0, fuel: 0, insurance: 0, tax: 0, maint: 0, other: 0 };
+        summary[pm].total += f.total;
+        summary[pm].fuel += f.total;
+        grandTotal += f.total;
+      });
+
+      activeE.forEach(e => {
+        const pm = e.paymentMethod || "Nakit";
+        if (!summary[pm]) summary[pm] = { total: 0, fuel: 0, insurance: 0, tax: 0, maint: 0, other: 0 };
+        summary[pm].total += e.amount;
+        grandTotal += e.amount;
+
+        if (e.type.includes("Kasko") || e.type.includes("Sigortası")) summary[pm].insurance += e.amount;
+        else if (e.type.includes("MTV")) summary[pm].tax += e.amount;
+        else if (e.type.includes("Bakım") || e.type.includes("Lastik")) summary[pm].maint += e.amount;
+        else summary[pm].other += e.amount;
+      });
+
+      document.getElementById("totalExpCardSum").innerText = `Toplam: ₺${Math.round(grandTotal).toLocaleString('tr-TR')}`;
+      const container = document.getElementById("paymentBreakdownContainer");
+      container.innerHTML = "";
+
+      if (Object.keys(summary).length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center custom-muted text-[10px] py-1">Henüz ödeme kaydı bulunmuyor.</div>`;
+        return;
+      }
+
+      for (let [pm, data] of Object.entries(summary)) {
+        let detailsText = [];
+        if (data.fuel > 0) detailsText.push(`⛽ Yakıt: ₺${Math.round(data.fuel)}`);
+        if (data.insurance > 0) detailsText.push(`🛡️ Sigorta: ₺${Math.round(data.insurance)}`);
+        if (data.tax > 0) detailsText.push(`🏛️ Vergi: ₺${Math.round(data.tax)}`);
+        if (data.maint > 0) detailsText.push(`🛠️ Bakım: ₺${Math.round(data.maint)}`);
+        if (data.other > 0) detailsText.push(`📦 Diğer: ₺${Math.round(data.other)}`);
+
+        container.innerHTML += `
+          <div class="p-2 rounded-lg bg-slate-900/40 border border-slate-700/30 space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-cyan-300 truncate">${pm}</span>
+              <span class="text-white text-xs">₺${Math.round(data.total).toLocaleString('tr-TR')}</span>
+            </div>
+            <div class="text-[9px] custom-muted space-x-1 truncate">
+              ${detailsText.join(' • ')}
+            </div>
+          </div>
+        `;
+      }
     }
 
     function renderExpenseCards() {
@@ -1465,7 +1490,7 @@
       
       const filtered = expenses.filter(e => {
         const matchYear = (selectedYear === "all" || (e.date && e.date.startsWith(selectedYear)));
-        const matchText = (e.type.toLowerCase().includes(query) || (e.desc && e.desc.toLowerCase().includes(query)) || e.date.includes(query));
+        const matchText = (e.type.toLowerCase().includes(query) || (e.desc && e.desc.toLowerCase().includes(query)) || (e.paymentMethod && e.paymentMethod.toLowerCase().includes(query)) || e.date.includes(query));
         let matchCategory = true;
         if (activeExpenseCategory === 'Periyodik Bakım') matchCategory = e.type === "Periyodik Bakım";
         else if (activeExpenseCategory === 'Sigorta') matchCategory = e.type.includes("Kasko") || e.type.includes("Sigortası");
@@ -1489,7 +1514,10 @@
           <div onclick="toggleExpenseExpansion('${item.id}')" class="cursor-pointer">
             <div class="flex justify-between items-center">
               <div>
-                <div class="font-extrabold text-pink-500 text-xs mb-0.5">${item.type}</div>
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="font-extrabold text-pink-500 text-xs">${item.type}</span>
+                  <span class="bg-purple-900/40 text-purple-300 px-1.5 py-0.2 rounded text-[9px] font-bold">${item.paymentMethod || 'Nakit'}</span>
+                </div>
                 <div class="custom-muted text-[10px]">
                   ${dateFormatted} 
                   ${item.maintenanceKm ? `• <span class="text-blue-400 font-semibold">${item.maintenanceKm.toLocaleString('tr-TR')} KM</span>` : ''} 
@@ -1507,8 +1535,8 @@
             <div class="pt-2 mt-2 border-t border-slate-700/40 space-y-2">
               <div class="grid grid-cols-2 gap-2 text-[10px] p-2 bg-slate-900/40 rounded-lg">
                 <div>
-                  <span class="custom-muted block text-[9px]">Gider Kategorisi</span>
-                  <span class="font-bold text-white">${item.type}</span>
+                  <span class="custom-muted block text-[9px]">Ödeme Yöntemi</span>
+                  <span class="font-bold text-cyan-400">${item.paymentMethod || 'Nakit'}</span>
                 </div>
                 <div>
                   <span class="custom-muted block text-[9px]">Tutar</span>
@@ -1542,6 +1570,7 @@
         `;
         container.appendChild(card);
       });
+      renderPaymentBreakdown();
     }
 
     function calculateSmartReminders() {
@@ -1745,6 +1774,7 @@
           tirePos: pos,
           tireSyncId: syncId,
           amount: cost,
+          paymentMethod: "Nakit",
           desc: `${names[pos]}: ${action} ${note ? '('+note+')' : ''}`
         });
       }
@@ -1782,6 +1812,7 @@
     let monthlyKmChart = null;
     let monthlyFuelChart = null;
     let priceChart = null;
+    let fuelChartMode = 'tl'; // 'tl' veya 'lit'
 
     function calculateFuelMetrics(list) {
       const s = list.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
@@ -1803,25 +1834,65 @@
       return r;
     }
 
+    // MANUEL KM'LERİ DAHİL EDEN AYLIK HESAPLAMA MİMARİSİ
     function processMonthlyData(calcFuels) {
-      let map = {}; 
-      calcFuels.forEach(f => { 
-        const k = f.date.substring(0, 7); 
-        if (!map[k]) map[k] = { min: f.km, max: f.km, lit: 0, tot: 0 }; 
-        map[k].min = Math.min(map[k].min, f.km); 
-        map[k].max = Math.max(map[k].max, f.km); 
-        map[k].tot += f.total; 
+      let map = {};
+
+      // 1. Yakıt kayıtlarından gelen km ve tutarları/litrelere işle
+      calcFuels.forEach(f => {
+        const k = f.date.substring(0, 7);
+        if (!map[k]) map[k] = { min: f.km, max: f.km, lit: 0, tot: 0 };
+        map[k].min = Math.min(map[k].min, f.km);
+        map[k].max = Math.max(map[k].max, f.km);
+        map[k].lit += f.liters;
+        map[k].tot += f.total;
       });
+
+      // 2. Sadece KM (Manuel Sayaç) kayıtlarını işle
+      const activeOdo = odoLogs.filter(o => selectedYear === "all" || (o.date && o.date.startsWith(selectedYear)));
+      activeOdo.forEach(o => {
+        const k = o.date.substring(0, 7);
+        if (!map[k]) map[k] = { min: o.km, max: o.km, lit: 0, tot: 0 };
+        map[k].min = Math.min(map[k].min, o.km);
+        map[k].max = Math.max(map[k].max, o.km);
+      });
+
       const sm = Object.keys(map).sort(); 
-      let l = [], kD = [], cD = [];
-      for (let i = 0; i < sm.length; i++) { 
-        l.push(sm[i].substring(5)); 
-        cD.push(Math.round(map[sm[i]].tot)); 
-        let d = map[sm[i]].max - map[sm[i]].min; 
-        if (d === 0 && i > 0) d = map[sm[i]].max - map[sm[i - 1]].max; 
-        kD.push(Math.max(d, 0)); 
+      let l = [], kD = [], cD = [], lD = [];
+      let prevMaxKm = 0;
+
+      for (let i = 0; i < sm.length; i++) {
+        l.push(sm[i].substring(5));
+        cD.push(Math.round(map[sm[i]].tot));
+        lD.push(parseFloat(map[sm[i]].lit.toFixed(1)));
+
+        let d = map[sm[i]].max - map[sm[i]].min;
+        if (d === 0 && prevMaxKm > 0) {
+          d = map[sm[i]].max - prevMaxKm;
+        }
+        prevMaxKm = map[sm[i]].max;
+        kD.push(Math.max(d, 0));
       }
-      return { labels: l, kmData: kD, costData: cD };
+      return { labels: l, kmData: kD, costData: cD, litData: lD };
+    }
+
+    function toggleFuelChartMode(mode) {
+      fuelChartMode = mode;
+      const btnTl = document.getElementById("chartModeBtnTl");
+      const btnLit = document.getElementById("chartModeBtnLit");
+      const titleHeader = document.getElementById("fuelChartTitleHeader");
+
+      if (mode === 'tl') {
+        btnTl.className = "text-[9px] font-bold px-2 py-0.5 rounded bg-amber-600 text-white shadow";
+        btnLit.className = "text-[9px] font-bold px-2 py-0.5 rounded custom-card custom-muted";
+        titleHeader.innerHTML = `<span class="text-amber-500">⛽</span> Aylık Yakıt Trendi (₺ Tutar) <span class="text-[10px] text-amber-400 font-normal">⛶ Büyüt</span>`;
+      } else {
+        btnLit.className = "text-[9px] font-bold px-2 py-0.5 rounded bg-amber-600 text-white shadow";
+        btnTl.className = "text-[9px] font-bold px-2 py-0.5 rounded custom-card custom-muted";
+        titleHeader.innerHTML = `<span class="text-amber-500">⛽</span> Aylık Yakıt Trendi (⛽ Litre) <span class="text-[10px] text-amber-400 font-normal">⛶ Büyüt</span>`;
+      }
+      const ff = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+      renderCharts(calculateFuelMetrics(ff));
     }
 
     function renderCharts(calcFuels) {
@@ -1838,9 +1909,10 @@
       });
 
       if (monthlyFuelChart) monthlyFuelChart.destroy();
+      const fuelChartVals = fuelChartMode === 'tl' ? (m.costData.length ? m.costData : [0]) : (m.litData.length ? m.litData : [0]);
       monthlyFuelChart = new Chart(document.getElementById("monthlyFuelCanvas").getContext("2d"), { 
         type: 'bar', 
-        data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ data: m.costData.length ? m.costData : [0], backgroundColor: '#f59e0b', borderRadius: 6 }] }, 
+        data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ data: fuelChartVals, backgroundColor: '#f59e0b', borderRadius: 6 }] }, 
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gC }, ticks: { color: tC, font: { size: 9 } } }, y: { grid: { color: gC }, ticks: { color: tC, font: { size: 9 } } } } } 
       });
 
@@ -1867,7 +1939,7 @@
       if (landscapeChartInstance) landscapeChartInstance.destroy();
       if (type === 'km') { 
         iconEl.innerText = "📈"; 
-        titleEl.innerText = "Aylık Yol Analizi"; 
+        titleEl.innerText = "Aylık Yol Analizi (Manuel KM Dahil)"; 
         landscapeChartInstance = new Chart(ctx, { 
           type: 'bar', 
           data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] }, 
@@ -1875,10 +1947,11 @@
         }); 
       } else if (type === 'fuel') { 
         iconEl.innerText = "⛽"; 
-        titleEl.innerText = "Aylık Akaryakıt (TL)"; 
+        titleEl.innerText = fuelChartMode === 'tl' ? "Aylık Akaryakıt (₺ Tutar)" : "Aylık Akaryakıt (⛽ Litre)"; 
+        const dsVals = fuelChartMode === 'tl' ? (m.costData.length ? m.costData : [0]) : (m.litData.length ? m.litData : [0]);
         landscapeChartInstance = new Chart(ctx, { 
           type: 'bar', 
-          data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: 'Gider (₺)', data: m.costData.length ? m.costData : [0], backgroundColor: '#f59e0b', borderRadius: 8 }] }, 
+          data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: fuelChartMode === 'tl' ? 'Gider (₺)' : 'Miktar (L)', data: dsVals, backgroundColor: '#f59e0b', borderRadius: 8 }] }, 
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tC } } }, scales: { x: { grid: { color: gC }, ticks: { color: tC, font: { size: 11, weight: 'bold' } } }, y: { grid: { color: gC }, ticks: { color: tC, font: { size: 11 } } } } } 
         }); 
       } else if (type === 'price') { 
@@ -1895,10 +1968,7 @@
     }
 
     function closeLandscapeChart() { 
-      if (landscapeChartInstance) { 
-        landscapeChartInstance.destroy(); 
-        landscapeChartInstance = null; 
-      } 
+      if (landscapeChartInstance) { landscapeChartInstance.destroy(); landscapeChartInstance = null; } 
       document.getElementById("landscapeChartModal").classList.add("hidden"); 
     }
 
@@ -1915,7 +1985,6 @@
           if (liveKm >= lastFull.km) distSinceFull = liveKm - lastFull.km;
         }
         const remEst = Math.max(0, estFullRange - distSinceFull);
-
         document.getElementById("fuelRangeText").innerText = `Tam Depo ile: ~${estFullRange.toLocaleString('tr-TR')} km`;
         document.getElementById("fuelRangeRemaining").innerText = `Kalan Tahmin: ~${remEst.toLocaleString('tr-TR')} km`;
         banner.classList.remove("hidden");
@@ -1925,7 +1994,6 @@
       }
     }
 
-    // ARAÇ EKSPERTİZ & SAĞLIK RAPORU OLUŞTURUCU
     function generateExpertReport() {
       const now = new Date();
       document.getElementById("expReportDate").innerText = `Rapor Tarihi: ${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR').substring(0,5)}`;
@@ -1935,16 +2003,13 @@
       const liveKm = getLatestVehicleKm();
       document.getElementById("repCarKm").innerText = liveKm > 0 ? `${liveKm.toLocaleString('tr-TR')} KM` : "0 KM";
 
-      // Bakım verileri
       const maintLogs = expenses.filter(e => e.type === "Periyodik Bakım").sort((a,b) => new Date(b.date) - new Date(a.date));
       if (maintLogs.length > 0) {
         const lastM = maintLogs[0];
         document.getElementById("repLastMaintDate").innerText = formatDateTimeLabel(lastM.date);
         document.getElementById("repLastMaintKm").innerText = lastM.maintenanceKm ? `${lastM.maintenanceKm.toLocaleString('tr-TR')} KM` : "Belirtilmedi";
-        
         let kmLeft = lastM.maintenanceKm ? Math.max(0, (lastM.maintenanceKm + 20000) - liveKm) : null;
-        document.getElementById("repMaintKmLeft").innerText = kmLeft !== null ? `${kmLeft.toLocaleString('tr-TR')} km kaldı` : "Periyot: 20.000 KM";
-        
+        document.getElementById("repMaintKmLeft").innerText = kmLeft !== null ? `${kmLeft.toLocaleString('tr-TR')} km kaldı` : "20.000 KM";
         const tDate = new Date(lastM.date); tDate.setDate(tDate.getDate() + 365);
         const days = Math.ceil((tDate - now) / 86400000);
         document.getElementById("repMaintDaysLeft").innerText = days > 0 ? `${days} gün kaldı` : "Vadesi Doldu!";
@@ -1955,7 +2020,6 @@
         document.getElementById("repMaintDaysLeft").innerText = "1 Yıl";
       }
 
-      // Lastikler
       const activeSet = tireData.activeSet || "summer";
       const setObj = tireData[activeSet];
       document.getElementById("repTireSet").innerText = activeSet === "summer" ? "☀️ Yazlık Lastik Seti" : "❄️ Kışlık Lastik Seti";
@@ -1966,7 +2030,6 @@
       document.getElementById("repTireSolArka").innerText = setObj.sol_arka.status || "Sorunsuz";
       document.getElementById("repTireSagArka").innerText = setObj.sag_arka.status || "Sorunsuz";
 
-      // Harcamalar
       let totalFuel = 0; fuels.forEach(f => totalFuel += f.total);
       let fixedExp = 0, varExp = 0;
       expenses.forEach(e => {
@@ -2060,6 +2123,7 @@
       document.getElementById("fLiters").value = f.liters; 
       document.getElementById("fTotal").value = f.total; 
       document.getElementById("fDashboardL100").value = f.dashL100 || ""; 
+      document.getElementById("fPaymentMethod").value = f.paymentMethod || "Nakit";
       document.getElementById("fIsFull").checked = f.isFull; 
       document.getElementById("fDocData").value = f.docData || ""; 
       if (f.docData) showCompressSuccess('fDocData'); 
@@ -2081,6 +2145,7 @@
         liters: parseFloat(document.getElementById("fLiters").value), 
         total: parseFloat(document.getElementById("fTotal").value), 
         dashL100: document.getElementById("fDashboardL100").value ? parseFloat(document.getElementById("fDashboardL100").value) : null, 
+        paymentMethod: document.getElementById("fPaymentMethod").value,
         isFull: document.getElementById("fIsFull").checked, 
         docData: document.getElementById("fDocData").value || null 
       }; 
@@ -2202,9 +2267,9 @@
     }
 
     function exportCSV() { 
-      let csv = "Tarih,Km,Tur,Istasyon,Sube,Litre,ToplamTL,BirimFiyat,TamDepo\n"; 
+      let csv = "Tarih,Km,Tur,Istasyon,Sube,Litre,ToplamTL,BirimFiyat,TamDepo,Odeme\n"; 
       fuels.forEach(f => { 
-        csv += `${f.date},${f.km},${f.fuelType || 'Benzin/Dizel'},${f.station},"${f.branch || ''}",${f.liters},${f.total},${(f.total/f.liters).toFixed(2)},${f.isFull ? 'Evet' : 'Hayir'}\n`; 
+        csv += `${f.date},${f.km},${f.fuelType || 'Benzin/Dizel'},${f.station},"${f.branch || ''}",${f.liters},${f.total},${(f.total/f.liters).toFixed(2)},${f.isFull ? 'Evet' : 'Hayir'},${f.paymentMethod || 'Nakit'}\n`; 
       }); 
       const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); 
       const a = document.createElement("a"); 
