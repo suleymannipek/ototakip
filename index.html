@@ -35,7 +35,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swScript = `
-          const CACHE_NAME = 'ototakip-v2026.09.30-2330';
+          const CACHE_NAME = 'ototakip-v2026.09.30-2345';
           const ASSETS = [
             './',
             './index.html',
@@ -162,6 +162,7 @@
 </head>
 <body class="min-h-screen">
 
+  <!-- ÜST HEADER (TURBO SAYACI KALDIRILDI) -->
   <header class="sticky top-0 z-30 backdrop-blur-md border-b px-3 py-2 flex justify-between items-center shadow-md">
     <div class="flex items-center gap-2 min-w-0">
       <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-base shadow flex-shrink-0">🚗</div>
@@ -181,10 +182,6 @@
         <span id="themeIcon">🔵</span>
       </button>
       <button onclick="toggleFullScreen()" title="Tam Ekran" class="w-7 h-7 rounded-full custom-card flex items-center justify-center text-[10px]">⛶</button>
-      <button onclick="startTurbo(30)" id="headerTurboBtn" class="flex items-center gap-0.5 custom-card text-[11px] px-2 py-1 rounded-full font-semibold">
-        <span>⏱️</span>
-        <span id="headerTurboText">30s</span>
-      </button>
     </div>
   </header>
 
@@ -483,8 +480,21 @@
       </div>
     </div>
 
-    <!-- 5. SEKME: YEDEK, AYARLAR, EKSPERTİZ & GÜNCELLEME GÜNLÜĞÜ -->
+    <!-- 5. SEKME: YEDEK, AYARLAR, EKSPERTİZ & YAPAY ZEKA VERİ GİRİŞİ -->
     <div id="tabBackup" class="space-y-3 hidden">
+      <!-- YAPAY ZEKA HIZLI VERİ İÇE AKTARMA KUTUSU -->
+      <div class="custom-card p-3.5 rounded-xl shadow space-y-2 border-indigo-800/50 bg-indigo-950/10">
+        <h3 class="text-xs font-bold text-indigo-300 flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><span>⚡</span> Yapay Zeka Hızlı Veri İçe Aktar</span>
+          <span class="text-[9px] bg-indigo-900/50 px-1.5 py-0.5 rounded text-indigo-200">Fiş & Servis</span>
+        </h3>
+        <p class="text-[10px] custom-muted">Sohbette fiş/servis formu gönderdiğinizde verilen kodu buraya yapıştırıp tek tıkla kaydedin:</p>
+        <textarea id="aiDataImportInput" rows="2" placeholder='{"type":"fuel", "station":"Opet", ...} veya OTOTAKIP_DATA:...' class="w-full text-xs p-2 rounded-lg custom-input border outline-none font-mono"></textarea>
+        <button onclick="importAIDataCode()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow flex items-center justify-center gap-1">
+          <span>🚀</span> Veriyi Tek Tıkla Uygulamaya İşle
+        </button>
+      </div>
+
       <!-- ARAÇ PROFİL & DEPO AYARLARI (AKORDİYON) -->
       <div class="custom-card rounded-xl overflow-hidden shadow">
         <button onclick="toggleProfileAccordion()" class="w-full p-3 flex justify-between items-center text-left hover:bg-slate-800/30 transition-all">
@@ -547,12 +557,12 @@
         </div>
       </div>
 
-      <!-- VERİ YEDEKLEME & EKSPERTİZ ÇIKTISI -->
+      <!-- VERİ YEDEKLEME & RAPORLAMA BUTONU -->
       <div class="custom-card p-3.5 rounded-xl shadow space-y-3">
         <h3 class="text-xs font-bold">Veri Yedekleme & Raporlama</h3>
         
-        <button onclick="generateExpertReport()" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-lg text-xs font-bold text-white shadow flex items-center justify-center gap-1.5">
-          <span>📋</span> Araç Ekspertiz & Servis Geçmişi Raporu (PDF / Yazdır)
+        <button onclick="openReportModal()" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-lg text-xs font-bold text-white shadow flex items-center justify-center gap-1.5">
+          <span>📋</span> Araç Durum & Satış Ekspertiz Raporu Al
         </button>
 
         <div class="grid grid-cols-2 gap-2 pt-1">
@@ -578,7 +588,7 @@
       <div class="text-center pt-2 pb-1">
         <button onclick="openChangelogModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full custom-card border border-cyan-800/50 hover:border-cyan-500/80 transition-all shadow-sm">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 23:30</span>
+          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 23:45</span>
           <span class="text-[9px] custom-muted font-medium ml-1">Neler Yeni? ▾</span>
         </button>
       </div>
@@ -668,18 +678,28 @@
     </div>
   </div>
 
-  <!-- ARAÇ EKSPERTİZ & SERVİS GEÇMİŞİ RAPORU MODALI -->
+  <!-- ÇİFT KADEMELİ RAPORLAMA MODALI (SAĞLIK vs. SATIŞ EKSPERTİZİ) -->
   <div id="expertReportModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3 hidden">
-    <div class="custom-card max-w-lg w-full rounded-2xl p-4 space-y-3.5 border border-blue-700/60 shadow-2xl max-h-[92vh] flex flex-col">
+    <div class="custom-card max-w-lg w-full rounded-2xl p-4 space-y-3 border border-blue-700/60 shadow-2xl max-h-[94vh] flex flex-col">
       <div class="flex justify-between items-center border-b border-slate-700/50 pb-2 shrink-0">
         <div class="flex items-center gap-2">
-          <span class="text-xl">📋</span>
+          <span class="text-xl" id="reportHeaderIcon">📋</span>
           <div>
-            <h3 class="text-xs font-black text-white">Araç Ekspertiz & Servis Geçmişi Raporu</h3>
+            <h3 class="text-xs font-black text-white" id="reportHeaderTitle">Araç Raporu</h3>
             <p class="text-[9px] text-cyan-400 font-mono" id="expReportDate">Rapor Tarihi: --</p>
           </div>
         </div>
         <button onclick="closeModal('expertReportModal')" class="custom-muted text-base hover:text-white">✕</button>
+      </div>
+
+      <!-- RAPOR TÜRÜ GEÇİŞ SEKMESİ -->
+      <div class="flex gap-1.5 p-1 bg-slate-900/60 rounded-xl border border-slate-700/40 shrink-0">
+        <button onclick="switchReportMode('health')" id="btnRepHealthMode" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-blue-600 text-white shadow">
+          🔍 Araç Sağlık Raporu (Senin İçin)
+        </button>
+        <button onclick="switchReportMode('resale')" id="btnRepResaleMode" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg custom-muted hover:text-white">
+          🤝 Satış & Ekspertiz (Alıcı İçin)
+        </button>
       </div>
 
       <div id="expertReportPrintArea" class="flex-1 overflow-y-auto space-y-3 history-scroll pr-1 text-xs">
@@ -695,9 +715,9 @@
           </div>
         </div>
 
-        <!-- Periyodik Bakım Durumu -->
+        <!-- Periyodik Bakım Özeti -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
-          <h4 class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5"><span>🛠️</span> Periyodik Bakım Özeti</h4>
+          <h4 class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5"><span>🛠️️</span> Periyodik Bakım Durumu</h4>
           <div class="grid grid-cols-2 gap-2 text-[10px]">
             <div><span class="custom-muted block text-[9px]">Son Bakım Tarihi</span><b id="repLastMaintDate">Kayıt Yok</b></div>
             <div><span class="custom-muted block text-[9px]">Son Bakım KM</span><b id="repLastMaintKm">--</b></div>
@@ -706,17 +726,17 @@
           </div>
         </div>
 
-        <!-- Resmi Servis, Parça Değişimi & Eksper Kayıtları -->
+        <!-- Servis, Değişen Parça & Onarım Geçmişi -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-2">
           <div class="flex justify-between items-center">
-            <h4 class="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5"><span>🔩</span> Servis, Değişen Parça & Onarım Geçmişi</h4>
-            <span class="text-[9px] text-slate-400">Filtrelenmiş Kayıtlar</span>
+            <h4 class="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5"><span>🔩</span> Servis, Değişen Parça & Resmi İşlemler</h4>
+            <span class="text-[9px] text-slate-400">Filtrelenmiş Servis Karnesi</span>
           </div>
           <div id="repServiceHistoryList" class="space-y-2"></div>
         </div>
 
-        <!-- Lastik Sağlık & Set Bilgisi -->
-        <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
+        <!-- Lastik Sağlık & Set Bilgisi (SATIŞ MODUNDA GİZLENİR) -->
+        <div id="repTireSection" class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
           <h4 class="text-[11px] font-bold text-cyan-400 flex items-center gap-1.5"><span>🛞</span> Lastik Sağlık & Set Bilgisi</h4>
           <div class="text-[10px] space-y-1">
             <div class="flex justify-between"><span class="custom-muted">Takılı Set:</span><b id="repTireSet">Yazlık Set</b></div>
@@ -730,14 +750,14 @@
           </div>
         </div>
 
-        <!-- Toplam Harcama ve Tüketim Analizi -->
-        <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
-          <h4 class="text-[11px] font-bold text-pink-400 flex items-center gap-1.5"><span>💰</span> Harcama ve Tüketim Analizi</h4>
+        <!-- Harcama & Maliyet Analizi (SATIŞ MODUNDA SADECE YAKIT TÜKETİMİ KALIR) -->
+        <div id="repFinancialSection" class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
+          <h4 class="text-[11px] font-bold text-pink-400 flex items-center gap-1.5"><span>💰</span> Yakıt ve Tüketim Analizi</h4>
           <div class="grid grid-cols-2 gap-2 text-[10px]">
             <div><span class="custom-muted block text-[9px]">Toplam Yakıt Harcaması</span><b id="repTotalFuel">₺0</b></div>
             <div><span class="custom-muted block text-[9px]">Ortalama Tüketim</span><b id="repAvgCons" class="text-cyan-400">-- L/100km</b></div>
-            <div><span class="custom-muted block text-[9px]">Sabit Giderler (MTV/Sigorta)</span><b id="repFixedExp">₺0</b></div>
-            <div><span class="custom-muted block text-[9px]">Toplam Sahiplik Masrafı</span><b id="repTotalExp" class="text-pink-500 text-xs">₺0</b></div>
+            <div id="repFixedExpWrapper"><span class="custom-muted block text-[9px]">Sabit Giderler (MTV/Sigorta)</span><b id="repFixedExp">₺0</b></div>
+            <div id="repTotalExpWrapper"><span class="custom-muted block text-[9px]">Toplam Sahiplik Masrafı</span><b id="repTotalExp" class="text-pink-500 text-xs">₺0</b></div>
           </div>
         </div>
       </div>
@@ -759,7 +779,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h4 class="text-xs font-bold text-white">Sürüm & Geliştirme Günlüğü</h4>
-            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 23:30</span>
+            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 23:45</span>
           </div>
         </div>
         <button onclick="closeModal('changelogModal')" class="custom-muted text-base hover:text-white">✕</button>
@@ -768,22 +788,14 @@
       <div class="max-h-[60vh] overflow-y-auto space-y-3 pr-1 text-xs history-scroll">
         <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/40 space-y-1.5">
           <div class="flex justify-between items-center">
-            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (23:30)</span>
+            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (23:45)</span>
             <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-bold border border-emerald-800/50">Mevcut</span>
           </div>
           <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Garantiden veya ücretsiz yapılan parça değişimleri için 0 ₺ giriş desteği eklendi.</li>
-            <li>Gider girişine <b>"Ekspertiz Raporuna Dahil Et"</b> onay kutusu eklendi.</li>
-            <li>Periyodik bakımda rutin yağ/filtre/su harici ekstradan değişen parçalar için özel alan açıldı.</li>
-            <li>Ekspertiz raporuna değişen parçalar ve resmi onarım geçmişi dökümü eklendi (servis belgeleri fotoğrafları basılmaz, şık ibare olarak görünür).</li>
-          </ul>
-        </div>
-
-        <div class="p-2.5 rounded-xl bg-slate-800/20 border border-slate-700/30 space-y-1.5">
-          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (23:00)</div>
-          <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Kart yönetimi ve kampanya takip paneli Giderler sekmesine akordiyon olarak taşındı[span_2](start_span)[span_2](end_span).</li>
-            <li>Kart kutusuna dokunulduğunda o kartın tam harcama ekstresi ve kazanılan bonuslar penceresi açılır[span_3](start_span)[span_3](end_span).</li>
+            <li>Turbo sayacı arayüzden ve arka plandan tamamen kaldırıldı.</li>
+            <li>Çift kademeli raporlama eklendi: Sağlık Raporu (Senin İçin) vs. Satış & Ekspertiz Raporu (Alıcı İçin, lastik yama/fitil gizli).</li>
+            <li>Yedek sekmesine Yapay Zeka Hızlı Veri İçe Aktarma alanı eklendi (Fiş ve Servis formlarını tek tıkla işleme).</li>
+            <li>Garantiden yapılan 0 ₺ parça değişimleri ekspertiz raporunda resmi servis kaydı olarak listelenir.</li>
           </ul>
         </div>
       </div>
@@ -967,20 +979,17 @@
           </div>
         </div>
 
-        <!-- Bakım KM Alanı -->
         <div id="maintenanceKmField" class="hidden">
           <label class="custom-muted text-[10px] text-blue-400 font-bold">Müdahale Yapıldığı Andaki KM (ODO)</label>
           <input type="number" id="eMaintenanceKm" placeholder="örn: 12500" class="w-full mt-0.5 custom-input border border-blue-500/40 p-2 rounded-lg outline-none font-bold" />
         </div>
 
-        <!-- Periyodik Bakımda Ekstra Değişenler -->
         <div id="maintExtraPartsField" class="hidden p-2 rounded-lg bg-blue-950/20 border border-blue-800/40 space-y-1">
           <label class="custom-muted text-[10px] text-amber-300 font-bold">Yağ, Su & Filtre Harici Değişenler / Yapılanlar</label>
           <input type="text" id="eExtraParts" placeholder="örn: Ön fren balataları, bujiler, silecek..." class="w-full custom-input border p-2 rounded-lg outline-none text-[11px]" />
           <p class="text-[9px] custom-muted">Rutin yağ/filtre standarttır. Sadece harici değişen parçaları yazın.</p>
         </div>
 
-        <!-- Lastik Senkronizasyon Alanları -->
         <div id="tireSyncFields" class="grid grid-cols-2 gap-2 hidden p-2 rounded-lg bg-blue-950/20 border border-blue-800/40">
           <div>
             <label class="custom-muted text-[10px] text-blue-300 font-bold">Lastik Sezonu</label>
@@ -2059,7 +2068,7 @@
       if (season === "summer") { 
         bS.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/40"; 
         bW.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md custom-muted"; 
-        t.innerHTML = "<span>☀️️</span> Yazlık Lastik Seti"; 
+        t.innerHTML = "<span>☀</span> Yazlık Lastik Seti"; 
       } else { 
         bW.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/40"; 
         bS.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md custom-muted"; 
@@ -2356,7 +2365,46 @@
       }
     }
 
-    function generateExpertReport() {
+    // ÇİFT KADEMELİ RAPORLAMA YÖNETİMİ
+    let activeReportMode = "health"; // "health" veya "resale"
+
+    function openReportModal() {
+      switchReportMode('health');
+      document.getElementById("expertReportModal").classList.remove("hidden");
+    }
+
+    function switchReportMode(mode) {
+      activeReportMode = mode;
+      const bH = document.getElementById("btnRepHealthMode");
+      const bR = document.getElementById("btnRepResaleMode");
+      const tH = document.getElementById("reportHeaderTitle");
+      const iH = document.getElementById("reportHeaderIcon");
+
+      const tireSec = document.getElementById("repTireSection");
+      const fixedWrap = document.getElementById("repFixedExpWrapper");
+      const totalWrap = document.getElementById("repTotalExpWrapper");
+
+      if (mode === 'health') {
+        bH.className = "flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-blue-600 text-white shadow";
+        bR.className = "flex-1 py-1.5 text-[11px] font-bold rounded-lg custom-muted hover:text-white";
+        tH.innerText = "Araç Sağlık & Durum Raporu (Senin İçin)";
+        iH.innerText = "🔍";
+        tireSec.classList.remove("hidden");
+        fixedWrap.classList.remove("hidden");
+        totalWrap.classList.remove("hidden");
+      } else {
+        bR.className = "flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-emerald-600 text-white shadow";
+        bH.className = "flex-1 py-1.5 text-[11px] font-bold rounded-lg custom-muted hover:text-white";
+        tH.innerText = "Resmi Araç Satış & Ekspertiz Raporu (Alıcı İçin)";
+        iH.innerText = "🤝";
+        tireSec.classList.add("hidden"); // Lastik yama/fitil gizlenir
+        fixedWrap.classList.add("hidden"); // Kasko, MTV vb alıcıyı ilgilendirmeyenler sadeleştirilir
+        totalWrap.classList.add("hidden");
+      }
+      populateReportDetails();
+    }
+
+    function populateReportDetails() {
       const now = new Date();
       document.getElementById("expReportDate").innerText = `Rapor Tarihi: ${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR').substring(0,5)}`;
       document.getElementById("repCarName").innerText = carProfile.name || "Aracım";
@@ -2384,7 +2432,16 @@
 
       // Servis, Değişen Parça & Eksper Kayıtları Dökümü
       const serviceHistoryContainer = document.getElementById("repServiceHistoryList");
-      const expertRecords = expenses.filter(e => e.includeInExpert !== false && (e.type === "Periyodik Bakım" || e.type === "Parça Değişimi & Onarım" || e.type === "Lastik Tamir / Değişim" || (e.amount === 0 && e.desc))).sort((a,b) => new Date(b.date) - new Date(a.date));
+      
+      // Satış modunda sadece periyodik bakım ve parça değişimleri görünür; lastik fitil/yama gizlenir.
+      const expertRecords = expenses.filter(e => {
+        if (e.includeInExpert === false) return false;
+        if (activeReportMode === 'resale') {
+          return e.type === "Periyodik Bakım" || e.type === "Parça Değişimi & Onarım" || (e.amount === 0 && e.desc);
+        } else {
+          return e.type === "Periyodik Bakım" || e.type === "Parça Değişimi & Onarım" || e.type === "Lastik Tamir / Değişim" || (e.amount === 0 && e.desc);
+        }
+      }).sort((a,b) => new Date(b.date) - new Date(a.date));
 
       if (expertRecords.length === 0) {
         serviceHistoryContainer.innerHTML = `<div class="p-2 text-center custom-muted text-[10px]">Rapora dahil edilmiş servis veya parça değişim kaydı bulunmuyor.</div>`;
@@ -2395,7 +2452,7 @@
             <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/40 text-[10px] space-y-1">
               <div class="flex justify-between items-start font-bold">
                 <span class="text-white">${item.type}</span>
-                <span class="${isFree ? 'text-emerald-400' : 'text-slate-300'} font-black">${isFree ? 'Garantiden (0 ₺)' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span>
+                <span class="${isFree ? 'text-emerald-400' : 'text-slate-300'} font-black">${isFree ? 'Yetkili Servis (Garantiden - 0 ₺)' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span>
               </div>
               <div class="flex justify-between text-[9px] custom-muted">
                 <span>📅 ${formatDateTimeLabel(item.date)}</span>
@@ -2413,6 +2470,7 @@
         }).join('');
       }
 
+      // Lastikler
       const activeSet = tireData.activeSet || "summer";
       const setObj = tireData[activeSet];
       document.getElementById("repTireSet").innerText = activeSet === "summer" ? "☀️ Yazlık Lastik Seti" : "❄️ Kışlık Lastik Seti";
@@ -2423,6 +2481,7 @@
       document.getElementById("repTireSolArka").innerText = setObj.sol_arka.status || "Sorunsuz";
       document.getElementById("repTireSagArka").innerText = setObj.sag_arka.status || "Sorunsuz";
 
+      // Finansallar
       let totalFuel = 0; fuels.forEach(f => totalFuel += f.total);
       let fixedExp = 0, varExp = 0;
       expenses.forEach(e => {
@@ -2436,8 +2495,62 @@
       const cf = calculateFuelMetrics(fuels);
       let vcL = cf.filter(f => f.consumption).map(f => parseFloat(f.consumption));
       document.getElementById("repAvgCons").innerText = vcL.length ? `${(vcL.reduce((a,b)=>a+b,0)/vcL.length).toFixed(2)} L/100km` : "-- L/100km";
+    }
 
-      document.getElementById("expertReportModal").classList.remove("hidden");
+    // YAPAY ZEKA HIZLI VERİ İÇE AKTARMA MANTIĞI
+    function importAIDataCode() {
+      const input = document.getElementById("aiDataImportInput");
+      let raw = input.value.trim();
+      if (!raw) return alert("Lütfen yapay zekanın verdiği kodu yapıştırın.");
+
+      if (raw.startsWith("OTOTAKIP_DATA:")) {
+        raw = raw.replace("OTOTAKIP_DATA:", "").trim();
+      }
+
+      try {
+        const item = JSON.parse(raw);
+        if (item.dataType === "fuel" || item.liters !== undefined) {
+          fuels.push({
+            id: Date.now().toString(),
+            date: item.date || getNowLocalISO(),
+            km: parseFloat(item.km) || getLatestVehicleKm(),
+            station: item.station || "Opet",
+            fuelType: item.fuelType || "Benzin/Dizel",
+            branch: item.branch || "",
+            liters: parseFloat(item.liters) || 0,
+            total: parseFloat(item.total) || 0,
+            dashL100: item.dashL100 ? parseFloat(item.dashL100) : null,
+            paymentMethod: item.paymentMethod || "Nakit",
+            isFull: item.isFull !== false,
+            docData: item.docData || null
+          });
+          persistAllData();
+          input.value = "";
+          renderAll();
+          alert("✓ Yakıt fişi kaydı başarıyla işlendi!");
+        } else if (item.dataType === "expense" || item.extraParts !== undefined || item.type !== undefined) {
+          expenses.push({
+            id: Date.now().toString(),
+            date: item.date || getNowLocalISO(),
+            type: item.type || "Periyodik Bakım",
+            maintenanceKm: item.km ? parseFloat(item.km) : getLatestVehicleKm(),
+            extraParts: item.extraParts || null,
+            includeInExpert: item.includeInExpert !== false,
+            amount: parseFloat(item.amount) || 0,
+            paymentMethod: item.paymentMethod || "Nakit",
+            desc: item.desc || "Yapay zeka fiş aktarımı",
+            docData: item.docData || null
+          });
+          persistAllData();
+          input.value = "";
+          renderAll();
+          alert("✓ Servis/gider kaydı başarıyla işlendi!");
+        } else {
+          alert("Tanımlanamayan veri formatı!");
+        }
+      } catch (err) {
+        alert("Kod çözülemedi! Lütfen geçerli kodu eksiksiz yapıştırdığınızdan emin olun.");
+      }
     }
 
     function renderAll() {
@@ -2611,29 +2724,8 @@
     }
 
     function openChangelogModal() { document.getElementById("changelogModal").classList.remove("hidden"); }
-
-    function startTurbo(sec) { 
-      clearInterval(turboTimer); 
-      let l = sec; 
-      const b = document.getElementById("headerTurboBtn"); 
-      const t = document.getElementById("headerTurboText"); 
-      b.className = "flex items-center gap-0.5 bg-rose-600/30 border border-rose-500 text-rose-400 text-[11px] px-2 py-1 rounded-full font-bold animate-pulse"; 
-      t.innerText = `${l}s`; 
-      turboTimer = setInterval(() => { 
-        l--; 
-        if (l <= 0) { 
-          clearInterval(turboTimer); 
-          t.innerText = "OK"; 
-          b.className = "flex items-center gap-0.5 bg-emerald-600/30 border border-emerald-500 text-emerald-400 text-[11px] px-2 py-1 rounded-full font-bold"; 
-          setTimeout(() => { 
-            t.innerText = "30s"; 
-            b.className = "flex items-center gap-0.5 custom-card text-[11px] px-2 py-1 rounded-full font-semibold"; 
-          }, 3500); 
-        } else t.innerText = `${l}s`; 
-      }, 1000); 
-    }
-
     function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+
     function switchTab(tab) { 
       ["dashboard", "fuel", "expenses", "tires", "backup"].forEach(t => { 
         const e = document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1)); 
