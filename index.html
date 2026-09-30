@@ -35,7 +35,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swScript = `
-          const CACHE_NAME = 'ototakip-v2026.09.30-0921';
+          const CACHE_NAME = 'ototakip-v2026.09.30-1428';
           const ASSETS = [
             './',
             './index.html',
@@ -113,7 +113,7 @@
     }
     html { 
       background-color: var(--bg-main); 
-      transition: background-color 0.25s ease;
+      transition: background-color 0.25s ease, font-size 0.2s ease;
       font-size: 14px;
     }
     body {
@@ -404,7 +404,7 @@
       </div>
     </div>
 
-    <!-- 5. SEKME: YEDEK, AYARLAR & GÜNCELLEME GÜNLÜĞÜ -->
+    <!-- 5. SEKME: YEDEK, AYARLAR, METİN BOYUTU & GÜNCELLEME GÜNLÜĞÜ -->
     <div id="tabBackup" class="space-y-3 hidden">
       <div class="custom-card p-3.5 rounded-xl shadow space-y-2.5">
         <h3 class="text-xs font-bold flex items-center gap-1.5"><span>🚘</span> Araç Profil & Depo Ayarları</h3>
@@ -438,6 +438,26 @@
         </div>
       </div>
 
+      <!-- YENİ METİN BOYUTU AYARI -->
+      <div class="custom-card p-3.5 rounded-xl shadow space-y-2.5">
+        <h3 class="text-xs font-bold flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><span>🔤</span> Arayüz Metin Boyutu</span>
+          <span id="currentFontSizeBadge" class="text-[10px] text-cyan-400 font-bold">%100 (Standart)</span>
+        </h3>
+        <p class="text-[10px] custom-muted">Araç içinde daha rahat okumak için yazıları büyütebilirsiniz:</p>
+        <div class="grid grid-cols-3 gap-2 pt-1">
+          <button onclick="setFontSize('small')" id="btnFontSmall" class="py-2 rounded-lg custom-card border text-[11px] font-bold hover:border-cyan-500 transition-all">
+            Küçük (%100)
+          </button>
+          <button onclick="setFontSize('medium')" id="btnFontMed" class="py-2 rounded-lg custom-card border text-[11px] font-bold hover:border-cyan-500 transition-all">
+            Büyük (%115)
+          </button>
+          <button onclick="setFontSize('large')" id="btnFontLg" class="py-2 rounded-lg custom-card border text-[11px] font-bold hover:border-cyan-500 transition-all">
+            İri (%130)
+          </button>
+        </div>
+      </div>
+
       <div class="custom-card p-3.5 rounded-xl shadow space-y-3">
         <h3 class="text-xs font-bold">Veri Yedekleme</h3>
         <div class="grid grid-cols-2 gap-2">
@@ -463,7 +483,7 @@
       <div class="text-center pt-2 pb-1">
         <button onclick="openChangelogModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full custom-card border border-cyan-800/50 hover:border-cyan-500/80 transition-all shadow-sm">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 09:21</span>
+          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 14:28</span>
           <span class="text-[9px] custom-muted font-medium ml-1">Neler Yeni? ▾</span>
         </button>
       </div>
@@ -479,7 +499,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h4 class="text-xs font-bold text-white">Sürüm Günlüğü</h4>
-            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 09:21</span>
+            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 14:28</span>
           </div>
         </div>
         <button onclick="closeModal('changelogModal')" class="custom-muted text-base hover:text-white">✕</button>
@@ -488,14 +508,13 @@
       <div class="max-h-[55vh] overflow-y-auto space-y-3 pr-1 text-xs history-scroll">
         <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/40 space-y-1.5">
           <div class="flex justify-between items-center">
-            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (09:21)</span>
+            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (14:28)</span>
             <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-bold border border-emerald-800/50">Mevcut</span>
           </div>
           <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Kalıcı veri koruma mimarisine geçildi (güncelleme yapılsa bile kayıtlar artık ASLA silinmez).</li>
-            <li>Tüm test verileri sıfırlandı; uygulama tamamen temiz veriyle çalışır hale getirildi.</li>
-            <li>Eski sürümlerdeki veriler otomatik olarak kalıcı belleğe aktarıldı.</li>
-            <li>Saat ve dakika hassasiyeti ile çift yönlü lastik senkronizasyonu tam korundu.</li>
+            <li>Yedek & Ayarlar sekmesine 3 kademeli (Küçük/Büyük/İri) metin büyütme ayarı eklendi.</li>
+            <li>Seçilen font boyutu kalıcı belleğe bağlandı.</li>
+            <li>Kalıcı veri koruma mimarisi ve çift yönlü lastik senkronizasyonu tam korundu.</li>
           </ul>
         </div>
       </div>
@@ -506,6 +525,7 @@
     </div>
   </div>
 
+  <!-- SET TAKMA MODALI -->
   <div id="tireMountModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t">
       <div class="flex justify-between items-center mb-3">
@@ -538,6 +558,7 @@
     </div>
   </div>
 
+  <!-- TEK LASTİK İŞLEM MODALI -->
   <div id="tireActionModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-center mb-2 shrink-0">
@@ -588,6 +609,7 @@
     </div>
   </div>
 
+  <!-- SADECE KM EKLEME MODALI -->
   <div id="odoModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t">
       <div class="flex justify-between items-center mb-3">
@@ -615,6 +637,7 @@
     </div>
   </div>
 
+  <!-- YAKIT MODALI -->
   <div id="fuelModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -659,6 +682,7 @@
     </div>
   </div>
 
+  <!-- GİDER MODALI -->
   <div id="expenseModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -766,6 +790,41 @@
     function cycleTheme() { let idx = themes.indexOf(currentTheme); applyTheme(themes[(idx + 1) % themes.length]); }
     function toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); } else { if (document.exitFullscreen) document.exitFullscreen(); } }
 
+    // METİN BOYUTU YÖNETİMİ
+    const fontSizes = {
+      small: { size: '14px', label: '%100 (Standart)' },
+      medium: { size: '16px', label: '%115 (Büyük)' },
+      large: { size: '18px', label: '%130 (İri)' }
+    };
+    let currentFontSizeKey = localStorage.getItem("ototakip_font_size") || "small";
+
+    function applyFontSize(key) {
+      if (!fontSizes[key]) key = "small";
+      currentFontSizeKey = key;
+      document.documentElement.style.fontSize = fontSizes[key].size;
+      localStorage.setItem("ototakip_font_size", key);
+
+      const badge = document.getElementById("currentFontSizeBadge");
+      if (badge) badge.innerText = fontSizes[key].label;
+
+      const btnSmall = document.getElementById("btnFontSmall");
+      const btnMed = document.getElementById("btnFontMed");
+      const btnLg = document.getElementById("btnFontLg");
+
+      if (btnSmall && btnMed && btnLg) {
+        [btnSmall, btnMed, btnLg].forEach(b => {
+          b.className = "py-2 rounded-lg custom-card border text-[11px] font-bold hover:border-cyan-500 transition-all";
+        });
+        if (key === 'small') btnSmall.className = "py-2 rounded-lg bg-blue-600 text-white border border-blue-500 text-[11px] font-bold";
+        else if (key === 'medium') btnMed.className = "py-2 rounded-lg bg-blue-600 text-white border border-blue-500 text-[11px] font-bold";
+        else if (key === 'large') btnLg.className = "py-2 rounded-lg bg-blue-600 text-white border border-blue-500 text-[11px] font-bold";
+      }
+    }
+
+    function setFontSize(key) {
+      applyFontSize(key);
+    }
+
     function getNowLocalISO() {
       const now = new Date();
       const offset = now.getTimezoneOffset() * 60000;
@@ -781,7 +840,6 @@
       return isoStr;
     }
 
-    // KALICI DEPOLAMA VE OTOMATİK VERİ KURTARMA (MIGRATION) MOTORU
     function getPersistedData(key, legacyKeys, defaultValue) {
       let data = localStorage.getItem(key);
       if (data) {
@@ -812,7 +870,6 @@
     };
     let tireData = getPersistedData("ototakip_tires", ["oto_tires_v8", "oto_tires_v7", "oto_tires_v6", "oto_tires_v5"], defaultTireData);
 
-    // Lastik geçmiş dizilerini garantiye al
     ["summer", "winter"].forEach(season => {
       if (!tireData[season]) tireData[season] = defaultTireData[season];
       ["sol_on", "sag_on", "sol_arka", "sag_arka"].forEach(pos => {
@@ -1216,7 +1273,7 @@
       if (season === "summer") { 
         bS.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/40"; 
         bW.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md custom-muted"; 
-        t.innerHTML = "<span>☀️</span> Yazlık Lastik Seti"; 
+        t.innerHTML = "<span>☀️️</span> Yazlık Lastik Seti"; 
       } else { 
         bW.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/40"; 
         bS.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md custom-muted"; 
@@ -1703,6 +1760,7 @@
     }
 
     applyTheme(currentTheme); 
+    applyFontSize(currentFontSizeKey);
     populateYearSelector(); 
     renderAll();
   </script>
