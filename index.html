@@ -35,7 +35,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swScript = `
-          const CACHE_NAME = 'ototakip-v2026.09.30-2300';
+          const CACHE_NAME = 'ototakip-v2026.09.30-2330';
           const ASSETS = [
             './',
             './index.html',
@@ -552,7 +552,7 @@
         <h3 class="text-xs font-bold">Veri Yedekleme & Raporlama</h3>
         
         <button onclick="generateExpertReport()" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-lg text-xs font-bold text-white shadow flex items-center justify-center gap-1.5">
-          <span>📋</span> Araç Ekspertiz & Sağlık Raporu (PDF / Yazdır)
+          <span>📋</span> Araç Ekspertiz & Servis Geçmişi Raporu (PDF / Yazdır)
         </button>
 
         <div class="grid grid-cols-2 gap-2 pt-1">
@@ -578,7 +578,7 @@
       <div class="text-center pt-2 pb-1">
         <button onclick="openChangelogModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full custom-card border border-cyan-800/50 hover:border-cyan-500/80 transition-all shadow-sm">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 23:00</span>
+          <span class="text-[10px] font-extrabold text-cyan-400">v2026.09.30 - 23:30</span>
           <span class="text-[9px] custom-muted font-medium ml-1">Neler Yeni? ▾</span>
         </button>
       </div>
@@ -604,7 +604,6 @@
       </div>
 
       <div class="flex-1 overflow-y-auto space-y-3 history-scroll pr-1 text-xs">
-        <!-- Özet Kart -->
         <div class="p-3 rounded-xl bg-purple-950/30 border border-purple-800/40 grid grid-cols-2 gap-2 text-[10px]">
           <div>
             <span class="custom-muted block text-[9px]">Toplam Araç Harcaması:</span>
@@ -620,7 +619,6 @@
           </div>
         </div>
 
-        <!-- Kampanya / Bonus Ekle Butonu ve Geçmişi -->
         <div class="p-2.5 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-[10px] font-bold text-amber-400 flex items-center gap-1">🎁 Kazanılan Kampanya & İadeler</span>
@@ -629,7 +627,6 @@
           <div id="stmtRewardList" class="space-y-1"></div>
         </div>
 
-        <!-- Kartla Yapılan Harcamaların Dökümü -->
         <div class="p-2.5 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-2">
           <div class="text-[10px] font-bold text-cyan-400 flex items-center gap-1">📑 Harcama Dökümü (Bu Kartla Ödenenler)</div>
           <div id="stmtExpenseList" class="space-y-1.5"></div>
@@ -671,14 +668,14 @@
     </div>
   </div>
 
-  <!-- ARAÇ EKSPERTİZ & SAĞLIK RAPORU MODALI -->
+  <!-- ARAÇ EKSPERTİZ & SERVİS GEÇMİŞİ RAPORU MODALI -->
   <div id="expertReportModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3 hidden">
     <div class="custom-card max-w-lg w-full rounded-2xl p-4 space-y-3.5 border border-blue-700/60 shadow-2xl max-h-[92vh] flex flex-col">
       <div class="flex justify-between items-center border-b border-slate-700/50 pb-2 shrink-0">
         <div class="flex items-center gap-2">
           <span class="text-xl">📋</span>
           <div>
-            <h3 class="text-xs font-black text-white">Araç Ekspertiz & Durum Raporu</h3>
+            <h3 class="text-xs font-black text-white">Araç Ekspertiz & Servis Geçmişi Raporu</h3>
             <p class="text-[9px] text-cyan-400 font-mono" id="expReportDate">Rapor Tarihi: --</p>
           </div>
         </div>
@@ -686,6 +683,7 @@
       </div>
 
       <div id="expertReportPrintArea" class="flex-1 overflow-y-auto space-y-3 history-scroll pr-1 text-xs">
+        <!-- Araç Başlığı -->
         <div class="p-3 rounded-xl bg-blue-950/30 border border-blue-800/40 flex justify-between items-center">
           <div>
             <div id="repCarName" class="text-sm font-black text-white">Dacia Sandero Stepway</div>
@@ -697,8 +695,9 @@
           </div>
         </div>
 
+        <!-- Periyodik Bakım Durumu -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
-          <h4 class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5"><span>🛠️</span> Periyodik Bakım Durumu</h4>
+          <h4 class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5"><span>🛠️</span> Periyodik Bakım Özeti</h4>
           <div class="grid grid-cols-2 gap-2 text-[10px]">
             <div><span class="custom-muted block text-[9px]">Son Bakım Tarihi</span><b id="repLastMaintDate">Kayıt Yok</b></div>
             <div><span class="custom-muted block text-[9px]">Son Bakım KM</span><b id="repLastMaintKm">--</b></div>
@@ -707,6 +706,16 @@
           </div>
         </div>
 
+        <!-- Resmi Servis, Parça Değişimi & Eksper Kayıtları -->
+        <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-2">
+          <div class="flex justify-between items-center">
+            <h4 class="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5"><span>🔩</span> Servis, Değişen Parça & Onarım Geçmişi</h4>
+            <span class="text-[9px] text-slate-400">Filtrelenmiş Kayıtlar</span>
+          </div>
+          <div id="repServiceHistoryList" class="space-y-2"></div>
+        </div>
+
+        <!-- Lastik Sağlık & Set Bilgisi -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
           <h4 class="text-[11px] font-bold text-cyan-400 flex items-center gap-1.5"><span>🛞</span> Lastik Sağlık & Set Bilgisi</h4>
           <div class="text-[10px] space-y-1">
@@ -721,8 +730,9 @@
           </div>
         </div>
 
+        <!-- Toplam Harcama ve Tüketim Analizi -->
         <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40 space-y-1.5">
-          <h4 class="text-[11px] font-bold text-pink-400 flex items-center gap-1.5"><span>💰</span> Toplam Harcama ve Tüketim Analizi</h4>
+          <h4 class="text-[11px] font-bold text-pink-400 flex items-center gap-1.5"><span>💰</span> Harcama ve Tüketim Analizi</h4>
           <div class="grid grid-cols-2 gap-2 text-[10px]">
             <div><span class="custom-muted block text-[9px]">Toplam Yakıt Harcaması</span><b id="repTotalFuel">₺0</b></div>
             <div><span class="custom-muted block text-[9px]">Ortalama Tüketim</span><b id="repAvgCons" class="text-cyan-400">-- L/100km</b></div>
@@ -749,7 +759,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h4 class="text-xs font-bold text-white">Sürüm & Geliştirme Günlüğü</h4>
-            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 23:00</span>
+            <span class="text-[9px] font-mono text-cyan-400">v2026.09.30 - 23:30</span>
           </div>
         </div>
         <button onclick="closeModal('changelogModal')" class="custom-muted text-base hover:text-white">✕</button>
@@ -758,31 +768,22 @@
       <div class="max-h-[60vh] overflow-y-auto space-y-3 pr-1 text-xs history-scroll">
         <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/40 space-y-1.5">
           <div class="flex justify-between items-center">
-            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (23:00)</span>
+            <span class="font-bold text-cyan-300 text-[11px]">30 Eylül 2026 (23:30)</span>
             <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-bold border border-emerald-800/50">Mevcut</span>
           </div>
           <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Kart yönetimi ve kampanya takip paneli Giderler sekmesine akordiyon olarak taşındı.</li>
-            <li>Kart kutusuna dokunulduğunda o kartın tam harcama ekstresi ve kazanılan bonuslar penceresi açılır.</li>
-            <li>Kazanılan bonus ve ekstre iadeleri tarih/saat seçilerek kaydedilebilir.</li>
-            <li>Yedek sekmesindeki araç ayarları kapalı akordiyona alınarak sayfa sadeleştirildi.</li>
+            <li>Garantiden veya ücretsiz yapılan parça değişimleri için 0 ₺ giriş desteği eklendi.</li>
+            <li>Gider girişine <b>"Ekspertiz Raporuna Dahil Et"</b> onay kutusu eklendi.</li>
+            <li>Periyodik bakımda rutin yağ/filtre/su harici ekstradan değişen parçalar için özel alan açıldı.</li>
+            <li>Ekspertiz raporuna değişen parçalar ve resmi onarım geçmişi dökümü eklendi (servis belgeleri fotoğrafları basılmaz, şık ibare olarak görünür).</li>
           </ul>
         </div>
 
         <div class="p-2.5 rounded-xl bg-slate-800/20 border border-slate-700/30 space-y-1.5">
-          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (16:00)</div>
+          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (23:00)</div>
           <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>"Sadece KM" kayıtları aylık yol grafiğine tam entegre edildi.</li>
-            <li>Aylık Yakıt Trendi grafiğine anlık [₺ Tutar] ve [⛽ Litre] geçiş butonları eklendi.</li>
-            <li>Yakıt ve Giderler formlarına Ödeme Yöntemi / Kredi Kartı seçimi entegre edildi.</li>
-          </ul>
-        </div>
-
-        <div class="p-2.5 rounded-xl bg-slate-800/20 border border-slate-700/30 space-y-1.5">
-          <div class="font-bold text-slate-300 text-[11px]">30 Eylül 2026 (15:04)</div>
-          <ul class="text-[10px] custom-muted space-y-1 list-disc list-inside">
-            <li>Araç Ekspertiz & Sağlık Raporu (Yazdır / PDF) özelliği sisteme kazandırıldı.</li>
-            <li>Giderler sekmesindeki kartlara dokununca açılan detay akordiyonu eklendi.</li>
+            <li>Kart yönetimi ve kampanya takip paneli Giderler sekmesine akordiyon olarak taşındı[span_2](start_span)[span_2](end_span).</li>
+            <li>Kart kutusuna dokunulduğunda o kartın tam harcama ekstresi ve kazanılan bonuslar penceresi açılır[span_3](start_span)[span_3](end_span).</li>
           </ul>
         </div>
       </div>
@@ -937,11 +938,11 @@
     </div>
   </div>
 
-  <!-- GİDER MODALI -->
+  <!-- GİDER MODALI (EKSPERTİZ & 0 ₺ GARANTİ DESTEKLİ) -->
   <div id="expenseModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
-        <h3 id="expModalTitle" class="font-bold text-xs">🛠️ Yeni Gider / Masraf</h3>
+        <h3 id="expModalTitle" class="font-bold text-xs">🛠️ Yeni Gider & Servis Kaydı</h3>
         <button onclick="closeModal('expenseModal')" class="custom-muted text-base">✕</button>
       </div>
       <form id="expForm" onsubmit="saveExpense(event)" class="space-y-2.5 text-xs">
@@ -951,25 +952,35 @@
           <div><label class="custom-muted text-[10px]">Tarih ve Saat</label><input type="datetime-local" id="eDate" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
           <div>
             <label class="custom-muted text-[10px]">Kategori</label>
-            <select id="eType" onchange="toggleExpenseFields()" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none">
-              <option value="Periyodik Bakım">Periyodik Bakım (1 Yıl/20K)</option>
-              <option value="Lastik Tamir / Değişim">Lastik Tamir / Değişim</option>
-              <option value="MTV (1. Taksit - Ocak)">MTV (Ocak)</option>
-              <option value="MTV (2. Taksit - Temmuz)">MTV (Temmuz)</option>
-              <option value="Kasko">Kasko Poliçesi</option>
-              <option value="Trafik Sigortası">Trafik Sigortası</option>
-              <option value="TÜVTÜRK Muayene">TÜVTÜRK Muayene</option>
-              <option value="Oto Yıkama & Temizlik">Yıkama</option>
-              <option value="Diğer">Diğer</option>
+            <select id="eType" onchange="toggleExpenseFields()" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none font-bold text-cyan-400">
+              <option value="Periyodik Bakım">🛠️ Periyodik Bakım (1 Yıl/20K)</option>
+              <option value="Parça Değişimi & Onarım">🔩 Parça Değişimi & Onarım (Garantili Dahil)</option>
+              <option value="Lastik Tamir / Değişim">🛞 Lastik Tamir / Değişim</option>
+              <option value="Kasko">🛡️ Kasko Poliçesi</option>
+              <option value="Trafik Sigortası">📑 Trafik Sigortası</option>
+              <option value="MTV (1. Taksit - Ocak)">🏛️ MTV (Ocak)</option>
+              <option value="MTV (2. Taksit - Temmuz)">🏛️ MTV (Temmuz)</option>
+              <option value="TÜVTÜRK Muayene">🔎 TÜVTÜRK Muayene</option>
+              <option value="Oto Yıkama & Temizlik">🧽 Yıkama & Temizlik</option>
+              <option value="Diğer">📦 Diğer</option>
             </select>
           </div>
         </div>
 
+        <!-- Bakım KM Alanı -->
         <div id="maintenanceKmField" class="hidden">
-          <label class="custom-muted text-[10px] text-blue-400 font-bold">Bakım Yapıldığı Andaki KM (ODO)</label>
-          <input type="number" id="eMaintenanceKm" class="w-full mt-0.5 custom-input border border-blue-500/40 p-2 rounded-lg outline-none font-bold" />
+          <label class="custom-muted text-[10px] text-blue-400 font-bold">Müdahale Yapıldığı Andaki KM (ODO)</label>
+          <input type="number" id="eMaintenanceKm" placeholder="örn: 12500" class="w-full mt-0.5 custom-input border border-blue-500/40 p-2 rounded-lg outline-none font-bold" />
         </div>
 
+        <!-- Periyodik Bakımda Ekstra Değişenler -->
+        <div id="maintExtraPartsField" class="hidden p-2 rounded-lg bg-blue-950/20 border border-blue-800/40 space-y-1">
+          <label class="custom-muted text-[10px] text-amber-300 font-bold">Yağ, Su & Filtre Harici Değişenler / Yapılanlar</label>
+          <input type="text" id="eExtraParts" placeholder="örn: Ön fren balataları, bujiler, silecek..." class="w-full custom-input border p-2 rounded-lg outline-none text-[11px]" />
+          <p class="text-[9px] custom-muted">Rutin yağ/filtre standarttır. Sadece harici değişen parçaları yazın.</p>
+        </div>
+
+        <!-- Lastik Senkronizasyon Alanları -->
         <div id="tireSyncFields" class="grid grid-cols-2 gap-2 hidden p-2 rounded-lg bg-blue-950/20 border border-blue-800/40">
           <div>
             <label class="custom-muted text-[10px] text-blue-300 font-bold">Lastik Sezonu</label>
@@ -990,18 +1001,40 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2">
-          <div><label class="custom-muted text-[10px]">Tutar (₺)</label><input type="number" step="0.01" id="eAmount" required class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
+          <div>
+            <div class="flex justify-between items-center">
+              <label class="custom-muted text-[10px]">Tutar (₺)</label>
+              <button type="button" onclick="setZeroCost()" class="text-[9px] text-emerald-400 font-bold hover:underline">0 ₺ (Garanti)</button>
+            </div>
+            <input type="number" step="0.01" id="eAmount" required placeholder="0.00" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none font-bold" />
+          </div>
           <div>
             <label class="custom-muted text-[10px]">Ödeme Yöntemi / Kart</label>
             <select id="ePaymentMethod" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none font-bold text-cyan-400 payment-select-target"></select>
           </div>
         </div>
 
-        <div><label class="custom-muted text-[10px]">Açıklama</label><input type="text" id="eDesc" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" /></div>
         <div>
-          <label class="custom-muted text-[10px] font-semibold flex justify-between"><span>📷 Fatura / PDF</span><span class="text-[9px] text-cyan-400">Oto Sıkıştırma</span></label>
+          <label class="custom-muted text-[10px]">Açıklama / İşlem Detayı</label>
+          <input type="text" id="eDesc" placeholder="örn: Yetkili serviste garantiden multimedya değişti" class="w-full mt-0.5 custom-input border p-2 rounded-lg outline-none" />
+        </div>
+
+        <!-- EKSPERTİZ RAPORUNA DAHİL ET CHECKBOX -->
+        <div class="p-2 rounded-lg bg-emerald-950/20 border border-emerald-800/40 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="eIncludeInExpert" checked class="w-4 h-4 rounded text-emerald-600 focus:ring-0" />
+            <label for="eIncludeInExpert" class="text-[11px] font-bold text-emerald-300 cursor-pointer">Araç Ekspertiz / Servis Raporuna Dahil Et</label>
+          </div>
+          <span class="text-[9px] custom-muted">Rapor Filtresi</span>
+        </div>
+
+        <div>
+          <label class="custom-muted text-[10px] font-semibold flex justify-between">
+            <span>📷 Servis Formu / Fatura / PDF</span>
+            <span class="text-[9px] text-cyan-400">Rapora basılmaz, güvenle saklanır</span>
+          </label>
           <input type="file" id="eDocInput" accept="image/*,application/pdf" onchange="handleDocCompress(event, 'eDocData')" class="mt-0.5 w-full text-[11px] custom-muted file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-emerald-600 file:text-white" />
-          <input type="hidden" id="eDocData" /><div id="eDocPreviewText" class="text-[10px] text-emerald-400 mt-0.5 hidden">✓ Belge eklendi</div>
+          <input type="hidden" id="eDocData" /><div id="eDocPreviewText" class="text-[10px] text-emerald-400 mt-0.5 hidden">✓ Belge yüklendi</div>
         </div>
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeModal('expenseModal')" class="flex-1 py-2 custom-card font-bold rounded-lg text-xs">İptal</button>
@@ -1151,7 +1184,6 @@
       document.getElementById("stmtAddRewardBtn").classList.toggle("hidden", isCash);
       document.getElementById("btnDeleteCurrentCard").classList.toggle("hidden", isCash);
 
-      // Harcamaları topla
       const activeF = fuels.filter(f => (f.paymentMethod || "Nakit") === cardName);
       const activeE = expenses.filter(e => (e.paymentMethod || "Nakit") === cardName);
       
@@ -1160,7 +1192,7 @@
 
       activeF.forEach(f => {
         totalSpent += f.total;
-        allEntries.push({ date: f.date, type: `⛽ Yakıt (${f.station})`, desc: `${f.liters} L • ${f.branch || 'Şube Yok'}`, amount: f.total });
+        allEntries.push({ date: f.date, type: `⛽ Yakıt (${f.station})`, desc: `${f.liters} L • ${f.branch || 'Merkez'}`, amount: f.total });
       });
 
       activeE.forEach(e => {
@@ -1178,7 +1210,6 @@
       document.getElementById("stmtTotalReward").innerText = `₺${parseFloat(totalReward).toLocaleString('tr-TR')}`;
       document.getElementById("stmtRewardRate").innerText = `%${rate} Kazanç`;
 
-      // Bonus listesi
       const rwListEl = document.getElementById("stmtRewardList");
       if (rewards.length === 0) {
         rwListEl.innerHTML = `<div class="text-[9px] custom-muted py-1">Kayıtlı bonus/iade yok.</div>`;
@@ -1194,7 +1225,6 @@
         `).join('');
       }
 
-      // Harcama listesi
       const expListEl = document.getElementById("stmtExpenseList");
       if (allEntries.length === 0) {
         expListEl.innerHTML = `<div class="text-[9px] custom-muted py-1">Bu kartla yapılmış harcama kaydı yok.</div>`;
@@ -1293,6 +1323,12 @@
         body.classList.add("hidden");
         icon.innerText = "▼ Düzenle";
       }
+    }
+
+    function setZeroCost() {
+      document.getElementById("eAmount").value = "0";
+      const descInput = document.getElementById("eDesc");
+      if (!descInput.value) descInput.value = "Garantiden değişti / Yetkili servis";
     }
 
     let defaultTireData = {
@@ -1604,10 +1640,21 @@
 
     function toggleExpenseFields() {
       const type = document.getElementById("eType").value;
-      document.getElementById("maintenanceKmField").classList.toggle("hidden", type !== "Periyodik Bakım");
-      document.getElementById("tireSyncFields").classList.toggle("hidden", type !== "Lastik Tamir / Değişim");
-      if (type === "Periyodik Bakım" && !document.getElementById("eMaintenanceKm").value) {
+      const isMaint = type === "Periyodik Bakım";
+      const isRepair = type === "Parça Değişimi & Onarım";
+      const isTire = type === "Lastik Tamir / Değişim";
+
+      document.getElementById("maintenanceKmField").classList.toggle("hidden", !(isMaint || isRepair));
+      document.getElementById("maintExtraPartsField").classList.toggle("hidden", !isMaint);
+      document.getElementById("tireSyncFields").classList.toggle("hidden", !isTire);
+
+      if ((isMaint || isRepair) && !document.getElementById("eMaintenanceKm").value) {
         document.getElementById("eMaintenanceKm").value = getLatestVehicleKm();
+      }
+
+      const incExp = document.getElementById("eIncludeInExpert");
+      if (isMaint || isRepair || isTire) {
+        incExp.checked = true;
       }
     }
 
@@ -1618,6 +1665,7 @@
       document.getElementById("eDocData").value = "";
       document.getElementById("eDocPreviewText").classList.add("hidden");
       document.getElementById("eDate").value = getNowLocalISO();
+      document.getElementById("eIncludeInExpert").checked = true;
       populatePaymentSelects();
       toggleExpenseFields();
       document.getElementById("expenseModal").classList.remove("hidden");
@@ -1631,10 +1679,12 @@
       document.getElementById("eTireSyncId").value = exp.tireSyncId || "";
       document.getElementById("eDate").value = exp.date;
       document.getElementById("eType").value = exp.type;
-      document.getElementById("eAmount").value = exp.amount;
+      document.getElementById("eAmount").value = exp.amount !== undefined ? exp.amount : "";
       document.getElementById("ePaymentMethod").value = exp.paymentMethod || customPaymentMethods[0];
       document.getElementById("eDesc").value = exp.desc || "";
       document.getElementById("eMaintenanceKm").value = exp.maintenanceKm || "";
+      document.getElementById("eExtraParts").value = exp.extraParts || "";
+      document.getElementById("eIncludeInExpert").checked = exp.includeInExpert !== false;
       if (exp.tireSeason) document.getElementById("eTireSeason").value = exp.tireSeason;
       if (exp.tirePos) document.getElementById("eTirePos").value = exp.tirePos;
       document.getElementById("eDocData").value = exp.docData || "";
@@ -1648,9 +1698,11 @@
       const id = document.getElementById("eId").value || Date.now().toString();
       const typeVal = document.getElementById("eType").value;
       const dateVal = document.getElementById("eDate").value;
-      const amountVal = parseFloat(document.getElementById("eAmount").value);
+      const amountVal = parseFloat(document.getElementById("eAmount").value) || 0;
       const payMethodVal = document.getElementById("ePaymentMethod").value;
       const descVal = document.getElementById("eDesc").value.trim();
+      const extraPartsVal = document.getElementById("eExtraParts").value.trim();
+      const incExpertVal = document.getElementById("eIncludeInExpert").checked;
       const tSyncId = document.getElementById("eTireSyncId").value || ("sync_" + Date.now());
 
       let tireSeason = null, tirePos = null;
@@ -1669,7 +1721,9 @@
         id,
         date: dateVal,
         type: typeVal,
-        maintenanceKm: typeVal === "Periyodik Bakım" ? parseFloat(document.getElementById("eMaintenanceKm").value) || null : null,
+        maintenanceKm: (typeVal === "Periyodik Bakım" || typeVal === "Parça Değişimi & Onarım") ? parseFloat(document.getElementById("eMaintenanceKm").value) || null : null,
+        extraParts: typeVal === "Periyodik Bakım" ? extraPartsVal : null,
+        includeInExpert: incExpertVal,
         tireSeason,
         tirePos,
         tireSyncId: typeVal === "Lastik Tamir / Değişim" ? tSyncId : null,
@@ -1747,7 +1801,7 @@
 
         if (e.type.includes("Kasko") || e.type.includes("Sigortası")) summary[pm].insurance += e.amount;
         else if (e.type.includes("MTV")) summary[pm].tax += e.amount;
-        else if (e.type.includes("Bakım") || e.type.includes("Lastik")) summary[pm].maint += e.amount;
+        else if (e.type.includes("Bakım") || e.type.includes("Lastik") || e.type.includes("Onarım")) summary[pm].maint += e.amount;
         else summary[pm].other += e.amount;
       });
 
@@ -1812,6 +1866,7 @@
         card.className = "custom-card p-3 rounded-xl shadow text-xs transition-all";
         const dateFormatted = formatDateTimeLabel(item.date);
         const isExp = expandedExpenses.has(item.id);
+        const isFree = (item.amount === 0 || item.amount === "0");
 
         card.innerHTML = `
           <div onclick="toggleExpenseExpansion('${item.id}')" class="cursor-pointer">
@@ -1820,6 +1875,7 @@
                 <div class="flex items-center gap-1.5 mb-0.5">
                   <span class="font-extrabold text-pink-500 text-xs">${item.type}</span>
                   <span class="bg-purple-900/40 text-purple-300 px-1.5 py-0.2 rounded text-[9px] font-bold">${item.paymentMethod || 'Nakit'}</span>
+                  ${item.includeInExpert ? `<span class="bg-emerald-950 text-emerald-400 border border-emerald-800/50 text-[8px] font-bold px-1 rounded">📋 Eksper</span>` : ''}
                 </div>
                 <div class="custom-muted text-[10px]">
                   ${dateFormatted} 
@@ -1828,7 +1884,7 @@
                 </div>
               </div>
               <div class="text-right">
-                <span class="font-black text-sm">₺${parseFloat(item.amount).toLocaleString('tr-TR')}</span>
+                <span class="font-black text-sm ${isFree ? 'text-emerald-400' : 'text-white'}">${isFree ? '0 ₺ (Garanti)' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span>
                 <div class="text-[10px] custom-muted mt-0.5 font-semibold">${isExp ? '▲ Kapat' : '▼ Detay'}</div>
               </div>
             </div>
@@ -1838,12 +1894,12 @@
             <div class="pt-2 mt-2 border-t border-slate-700/40 space-y-2">
               <div class="grid grid-cols-2 gap-2 text-[10px] p-2 bg-slate-900/40 rounded-lg">
                 <div>
-                  <span class="custom-muted block text-[9px]">Ödeme Yöntemi</span>
-                  <span class="font-bold text-cyan-400">${item.paymentMethod || 'Nakit'}</span>
+                  <span class="custom-muted block text-[9px]">Ödeme / Durum</span>
+                  <span class="font-bold text-cyan-400">${item.paymentMethod || 'Nakit'} ${isFree ? '(Ücretsiz/Garanti)' : ''}</span>
                 </div>
                 <div>
                   <span class="custom-muted block text-[9px]">Tutar</span>
-                  <span class="font-bold text-pink-400">₺${parseFloat(item.amount).toLocaleString('tr-TR')}</span>
+                  <span class="font-bold ${isFree ? 'text-emerald-400' : 'text-pink-400'}">${isFree ? '0 ₺ (Garantiden)' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span>
                 </div>
                 ${item.maintenanceKm ? `
                 <div>
@@ -1854,6 +1910,11 @@
                 <div>
                   <span class="custom-muted block text-[9px]">İşlem Gören Lastik</span>
                   <span class="font-bold text-amber-400">${posNames[item.tirePos] || item.tirePos} (${item.tireSeason === 'summer' ? 'Yazlık' : 'Kışlık'})</span>
+                </div>` : ''}
+                ${item.extraParts ? `
+                <div class="col-span-2 p-1.5 rounded bg-blue-950/40 border border-blue-800/30">
+                  <span class="text-[9px] text-amber-300 font-bold block">Yağ/Filtre Harici Ek Değişenler:</span>
+                  <span class="font-bold text-white text-[10px]">${item.extraParts}</span>
                 </div>` : ''}
                 <div class="col-span-2">
                   <span class="custom-muted block text-[9px]">Açıklama & Not</span>
@@ -1998,7 +2059,7 @@
       if (season === "summer") { 
         bS.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/40"; 
         bW.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md custom-muted"; 
-        t.innerHTML = "<span>☀️</span> Yazlık Lastik Seti"; 
+        t.innerHTML = "<span>☀️️</span> Yazlık Lastik Seti"; 
       } else { 
         bW.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/40"; 
         bS.className = "flex-1 py-1.5 text-[11px] font-bold rounded-md custom-muted"; 
@@ -2078,6 +2139,7 @@
           tireSyncId: syncId,
           amount: cost,
           paymentMethod: "Nakit",
+          includeInExpert: true,
           desc: `${names[pos]}: ${action} ${note ? '('+note+')' : ''}`
         });
       }
@@ -2318,6 +2380,37 @@
         document.getElementById("repLastMaintKm").innerText = "--";
         document.getElementById("repMaintKmLeft").innerText = "20.000 km";
         document.getElementById("repMaintDaysLeft").innerText = "1 Yıl";
+      }
+
+      // Servis, Değişen Parça & Eksper Kayıtları Dökümü
+      const serviceHistoryContainer = document.getElementById("repServiceHistoryList");
+      const expertRecords = expenses.filter(e => e.includeInExpert !== false && (e.type === "Periyodik Bakım" || e.type === "Parça Değişimi & Onarım" || e.type === "Lastik Tamir / Değişim" || (e.amount === 0 && e.desc))).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      if (expertRecords.length === 0) {
+        serviceHistoryContainer.innerHTML = `<div class="p-2 text-center custom-muted text-[10px]">Rapora dahil edilmiş servis veya parça değişim kaydı bulunmuyor.</div>`;
+      } else {
+        serviceHistoryContainer.innerHTML = expertRecords.map(item => {
+          const isFree = (item.amount === 0 || item.amount === "0");
+          return `
+            <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/40 text-[10px] space-y-1">
+              <div class="flex justify-between items-start font-bold">
+                <span class="text-white">${item.type}</span>
+                <span class="${isFree ? 'text-emerald-400' : 'text-slate-300'} font-black">${isFree ? 'Garantiden (0 ₺)' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span>
+              </div>
+              <div class="flex justify-between text-[9px] custom-muted">
+                <span>📅 ${formatDateTimeLabel(item.date)}</span>
+                <span>${item.maintenanceKm ? '📍 Sayaç: ' + item.maintenanceKm.toLocaleString('tr-TR') + ' KM' : ''}</span>
+              </div>
+              ${item.extraParts ? `
+                <div class="text-[9px] text-amber-300 bg-amber-950/30 p-1 rounded border border-amber-900/40">
+                  <b>Rutin Dışı Ek Parçalar:</b> ${item.extraParts}
+                </div>
+              ` : ''}
+              ${item.desc ? `<div class="text-[9px] text-slate-300">${item.desc}</div>` : ''}
+              ${item.docData ? `<div class="text-[8px] text-emerald-400 font-bold">✓ 📄 Servis Belgesi / Fatura Kayıtlı (Fotoğraf Arşivde)</div>` : ''}
+            </div>
+          `;
+        }).join('');
       }
 
       const activeSet = tireData.activeSet || "summer";
