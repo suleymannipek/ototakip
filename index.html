@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Araç Takip & Yönetim</title>
+  <title>Araç Yönetim & Finans Sistemi Pro</title>
+  <!-- Chart.js Kütüphanesi -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg: #0f172a;
@@ -16,7 +18,9 @@
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --badge-neutral: #475569;
+      --badge-neutral: #334155;
+      --input-bg: #0f172a;
+      --accent: #818cf8;
     }
 
     [data-theme="light"] {
@@ -31,6 +35,8 @@
       --warning: #d97706;
       --danger: #dc2626;
       --badge-neutral: #e2e8f0;
+      --input-bg: #f1f5f9;
+      --accent: #4f46e5;
     }
 
     * {
@@ -44,10 +50,10 @@
     body {
       background-color: var(--bg);
       color: var(--text);
-      padding-bottom: 80px;
+      padding-bottom: 90px;
+      transition: background 0.3s, color 0.3s;
     }
 
-    /* Üst Bar */
     header {
       background: var(--card-bg);
       border-bottom: 1px solid var(--card-border);
@@ -57,12 +63,12 @@
       align-items: center;
       position: sticky;
       top: 0;
-      z-index: 40;
+      z-index: 50;
     }
 
     .header-title {
       font-size: 1.15rem;
-      font-weight: 700;
+      font-weight: 800;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -74,8 +80,8 @@
       gap: 8px;
     }
 
-    select, input, button {
-      background: var(--card-bg);
+    select, input, button, textarea {
+      background: var(--input-bg);
       border: 1px solid var(--card-border);
       color: var(--text);
       border-radius: 8px;
@@ -91,26 +97,16 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, background 0.2s;
     }
+    button:active { opacity: 0.7; }
 
-    button:active {
-      opacity: 0.7;
-    }
+    .btn-primary { background: var(--primary); color: #fff; border: none; }
+    .btn-success { background: var(--success); color: #fff; border: none; }
+    .btn-danger { background: var(--danger); color: #fff; border: none; }
+    .btn-outline { background: transparent; border: 1px solid var(--card-border); color: var(--text); }
 
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-      border: none;
-    }
-
-    /* Hatırlatıcı Bandı */
+    /* Hatırlatıcı Bantları */
     .reminder-banner {
       margin: 12px 16px;
       padding: 10px 14px;
@@ -121,68 +117,41 @@
       gap: 8px;
       border: 1px solid transparent;
     }
-    .reminder-banner.empty {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: var(--success);
-      color: var(--success);
-    }
-    .reminder-banner.blue {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-    .reminder-banner.yellow {
-      background: rgba(245, 158, 11, 0.15);
-      border-color: var(--warning);
-      color: var(--warning);
-    }
-    .reminder-banner.orange {
-      background: rgba(249, 115, 22, 0.15);
-      border-color: #f97316;
-      color: #f97316;
-    }
-    .reminder-banner.red {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: var(--danger);
-      color: var(--danger);
-      font-weight: 700;
-    }
+    .reminder-banner.empty { background: rgba(16, 185, 129, 0.12); border-color: var(--success); color: var(--success); }
+    .reminder-banner.blue { background: rgba(56, 189, 248, 0.15); border-color: var(--primary); color: var(--primary); }
+    .reminder-banner.yellow { background: rgba(245, 158, 11, 0.15); border-color: var(--warning); color: var(--warning); }
+    .reminder-banner.orange { background: rgba(249, 115, 22, 0.15); border-color: #f97316; color: #f97316; }
+    .reminder-banner.red { background: rgba(239, 68, 68, 0.18); border-color: var(--danger); color: var(--danger); font-weight: 700; }
 
-    /* İçerik Konteyneri */
     main {
       padding: 0 16px;
-      max-width: 650px;
+      max-width: 680px;
       margin: 0 auto;
     }
 
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    /* Kartlar */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .card-title {
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .metric-value {
-      font-size: 1.6rem;
+      font-size: 1.7rem;
       font-weight: 800;
       margin-bottom: 4px;
     }
@@ -192,30 +161,29 @@
       color: var(--text-muted);
     }
 
-    /* Segment / Filtre Butonları */
+    /* Segment Filtreleri */
     .segmented-control {
       display: flex;
       background: var(--badge-neutral);
       border-radius: 8px;
-      padding: 2px;
+      padding: 3px;
       margin-bottom: 12px;
-      gap: 2px;
+      gap: 4px;
     }
     .segment-btn {
       flex: 1;
-      padding: 8px;
+      padding: 7px;
       border: none;
       background: transparent;
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       border-radius: 6px;
-      cursor: pointer;
     }
     .segment-btn.active {
       background: var(--card-bg);
       color: var(--text);
       font-weight: 700;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
     /* Arama Çubuğu */
@@ -223,10 +191,7 @@
       position: relative;
       margin-bottom: 12px;
     }
-    .search-wrapper input {
-      width: 100%;
-      padding-right: 36px;
-    }
+    .search-wrapper input { width: 100%; padding-right: 36px; }
     .clear-search-btn {
       position: absolute;
       right: 8px;
@@ -235,10 +200,9 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      cursor: pointer;
       font-size: 1rem;
-      padding: 4px;
       display: none;
+      cursor: pointer;
     }
 
     /* Rozetler */
@@ -249,18 +213,10 @@
       font-size: 0.75rem;
       font-weight: 700;
     }
-    .badge-garanti {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--success);
-      border: 1px solid var(--success);
-    }
-    .badge-consumption {
-      background: rgba(56, 189, 248, 0.2);
-      color: var(--primary);
-      border: 1px solid var(--primary);
-    }
+    .badge-garanti { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+    .badge-consumption { background: rgba(56, 189, 248, 0.2); color: var(--primary); border: 1px solid var(--primary); }
 
-    /* Liste Öğeleri */
+    /* Liste */
     .list-item {
       display: flex;
       justify-content: space-between;
@@ -268,26 +224,42 @@
       padding: 12px 0;
       border-bottom: 1px solid var(--card-border);
     }
-    .list-item:last-child {
-      border-bottom: none;
+    .list-item:last-child { border-bottom: none; }
+    .item-main { font-weight: 700; font-size: 0.95rem; }
+    .item-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 3px; }
+    .item-details-bold { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-top: 3px; }
+
+    /* 4 Tekerlek Görünümü */
+    .tire-car-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
     }
-    .item-main {
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-    .item-sub {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-    .item-details-bold {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-top: 3px;
+    .tire-box {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
     }
 
-    /* Alt Navigasyon Barı */
+    /* Kampanya İlerleme Çubuğu */
+    .progress-bar-bg {
+      background: var(--badge-neutral);
+      border-radius: 8px;
+      height: 8px;
+      width: 100%;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      background: var(--primary);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    /* Alt Navigasyon */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -298,7 +270,7 @@
       display: flex;
       justify-content: space-around;
       padding: 8px 0;
-      z-index: 50;
+      z-index: 60;
     }
     .nav-btn {
       background: transparent;
@@ -311,19 +283,14 @@
       font-size: 0.72rem;
       flex: 1;
     }
-    .nav-btn.active {
-      color: var(--primary);
-      font-weight: 700;
-    }
-    .nav-icon {
-      font-size: 1.25rem;
-    }
+    .nav-btn.active { color: var(--primary); font-weight: 800; }
+    .nav-icon { font-size: 1.25rem; }
 
     /* Modallar */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.65);
       display: none;
       align-items: center;
       justify-content: center;
@@ -333,44 +300,20 @@
     .modal {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 14px;
       width: 100%;
       max-width: 480px;
       padding: 20px;
       max-height: 90vh;
       overflow-y: auto;
     }
-    .modal-header {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-    .form-group {
-      margin-bottom: 14px;
-    }
-    .form-group label {
-      display: block;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-    }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 18px;
-    }
+    .modal-header { font-size: 1.15rem; font-weight: 800; margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
-    /* Hızlı Çipler */
-    .chip-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 6px;
-    }
+    .chip-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .chip {
       background: var(--badge-neutral);
       color: var(--text);
@@ -378,23 +321,19 @@
       border-radius: 16px;
       font-size: 0.78rem;
       cursor: pointer;
-      user-select: none;
     }
-    .chip.selected {
-      background: var(--primary);
-      color: #fff;
-    }
+    .chip.selected { background: var(--primary); color: #fff; }
   </style>
 </head>
 <body data-theme="dark">
 
   <header>
     <div class="header-title">
-      <span>🚗</span> Araç Takip
+      <span>🚗</span> Araç Takip Pro
     </div>
     <div class="header-controls">
       <select id="yearFilter" onchange="renderApp()">
-        <option value="ALL">Tüm Yıllar</option>
+        <option value="ALL">Tüm Zamanlar</option>
         <option value="2026" selected>2026</option>
         <option value="2025">2025</option>
       </select>
@@ -408,19 +347,31 @@
     <!-- TAB 1: ÖZET -->
     <div id="tab-ozet" class="tab-content active">
       <div class="card">
-        <div class="card-title">Toplam Araç Masrafı (Seçili Dönem)</div>
+        <div class="card-title">Toplam Araç Masrafı (TCO)</div>
         <div class="metric-value" id="totalExpenseMetric">₺0,00</div>
         <div class="metric-sub" id="tcoSubText">Yürütme Maliyeti: ₺0,00 / km</div>
       </div>
 
       <div class="card">
-        <div class="card-title">Kullanım & Kilometre Yoğunluğu</div>
+        <div class="card-title">Kullanım & Ortalama Kilometre</div>
         <div class="metric-value" id="currentKmMetric">0 km</div>
-        <div class="metric-sub" id="kmEstimateSubText">Ayda ortalama: - km • Yılda tahmini: - km</div>
+        <div class="metric-sub" id="kmEstimateSubText">Ortalama mesafe hesaplanıyor...</div>
       </div>
 
+      <!-- GRAFİK 1: Aylık Harcama Grafiği -->
+      <div class="card">
+        <div class="card-title">Aylık Harcama Trendi (₺)</div>
+        <div style="height: 180px; position: relative;">
+          <canvas id="monthlyTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- GRAFİK 2: Kategori Dağılımı -->
       <div class="card">
         <div class="card-title">Harcama Dağılımı</div>
+        <div style="height: 180px; position: relative; margin-bottom: 12px;">
+          <canvas id="categoryPieChart"></canvas>
+        </div>
         <div class="list-item">
           <div>⛽ Akaryakıt</div>
           <div class="item-main" id="breakdownFuel">₺0,00</div>
@@ -430,7 +381,7 @@
           <div class="item-main" id="breakdownService">₺0,00</div>
         </div>
         <div class="list-item">
-          <div>💳 Sabit Finans & Vergiler</div>
+          <div>💳 Finans, Vergi & Sigorta</div>
           <div class="item-main" id="breakdownFinance">₺0,00</div>
         </div>
       </div>
@@ -439,7 +390,7 @@
     <!-- TAB 2: YAKIT -->
     <div id="tab-yakit" class="tab-content">
       <div class="search-wrapper">
-        <input type="text" id="fuelSearchInput" placeholder="İstasyon veya plaka ara..." oninput="handleFuelSearch(this.value)" />
+        <input type="text" id="fuelSearchInput" placeholder="İstasyon, kart veya not ara..." oninput="handleFuelSearch(this.value)" />
         <button id="fuelClearBtn" class="clear-search-btn" onclick="clearFuelSearch()">✕</button>
       </div>
 
@@ -472,25 +423,13 @@
             <span id="tirePressureBadge"></span>
           </div>
           <div class="metric-sub" id="lastPressureDate">Son Kontrol: Henüz yapılmadı</div>
-          <div style="margin-top: 10px;">
-            <button class="btn-primary" style="width: 100%;" onclick="recordTirePressureCheck()">✅ Bugün Hava Basıldı / Kontrol Edildi</button>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="btn-primary" style="flex:1;" onclick="openTireModal()">✏️ PSI / Diş Düzenle</button>
+            <button class="btn-success" style="flex:1;" onclick="quickUpdateTireCheck()">✅ Hava Basıldı</button>
           </div>
-        </div>
 
-        <div class="card">
-          <div class="card-title">Mevsim & Takım Durumu</div>
-          <div class="list-item">
-            <div>Takılı Takım:</div>
-            <div class="item-main">Yazlık Takım</div>
-          </div>
-          <div class="list-item">
-            <div>Ön Lastikler:</div>
-            <div class="item-main">6.8 mm (İyi)</div>
-          </div>
-          <div class="list-item">
-            <div>Arka Lastikler:</div>
-            <div class="item-main">7.1 mm (Çok İyi)</div>
-          </div>
+          <!-- 4 Tekerlek Görsel Göstergesi (Dinamik) -->
+          <div class="tire-car-grid" id="tireDisplayGrid"></div>
         </div>
       </div>
     </div>
@@ -498,17 +437,27 @@
     <!-- TAB 4: CÜZDAN & FİNANS -->
     <div id="tab-finans" class="tab-content">
       <button class="btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="openFinanceModal()">+ Sabit Harcama / Vergi Ekle</button>
-      
+
+      <!-- Aktif Yakıt & Harcama Kampanyaları -->
       <div class="card">
         <div class="card-title">
-          <span>Kredi Kartları & Ödeme Araçları</span>
+          <span>🎁 Yakıt Kampanyaları Takibi</span>
+          <button style="font-size:0.75rem; padding: 4px 8px;" onclick="openCampaignModal()">+ Kampanya Ekle</button>
+        </div>
+        <div id="campaignList"></div>
+      </div>
+
+      <!-- Kredi Kartları Özeti & Ekstre Günleri -->
+      <div class="card">
+        <div class="card-title">
+          <span>Kredi Kartları & Ekstre Günleri</span>
           <button style="font-size:0.75rem; padding: 4px 8px;" onclick="openCardManageModal()">Kart Düzenle</button>
         </div>
         <div id="cardListSummary"></div>
       </div>
 
       <div class="card">
-        <div class="card-title">Finansal Gider Dökümü</div>
+        <div class="card-title">Finans & Vergi Hareketleri</div>
         <div id="financeList"></div>
       </div>
     </div>
@@ -516,9 +465,9 @@
     <!-- TAB 5: YEDEK & ARAÇLAR -->
     <div id="tab-yedek" class="tab-content">
       <div class="card">
-        <div class="card-title">Yapay Zeka Hızlı Veri İçe Aktar</div>
+        <div class="card-title">📋 Yapay Zeka Hızlı Veri Aktarımı</div>
         <div class="form-group" style="margin-top: 8px;">
-          <textarea id="aiJsonInput" rows="4" placeholder="Veri kodunu buraya yapıştırın..."></textarea>
+          <textarea id="aiJsonInput" rows="4" placeholder="AI tarafından verilen JSON verisini yapıştırın..."></textarea>
         </div>
         <div style="display: flex; gap: 8px;">
           <button style="flex:1;" onclick="pasteFromClipboard()">📋 Panodan Yapıştır</button>
@@ -526,19 +475,25 @@
         </div>
       </div>
 
+      <!-- Ekspertiz & Satış Özeti Raporu -->
       <div class="card">
-        <div class="card-title">Veri Güvenliği & Yedekleme</div>
-        <div class="metric-sub" id="lastBackupText" style="margin-bottom: 10px;">Son Yedek: Bilinmiyor</div>
+        <div class="card-title">📄 Araç Sağlık & Satış Özeti Raporu</div>
+        <div class="metric-sub" style="margin-bottom:10px;">Aracın bakım, parça ve yürütme geçmişini alıcıya göndermek veya arşivlemek için tek dokunuşla panoya kopyalayın.</div>
+        <button class="btn-primary" style="width: 100%;" onclick="copyInspectionReport()">📋 Ekspertiz Raporunu Kopyala</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💾 Veri Yedekleme & Geri Yükleme</div>
+        <div class="metric-sub" id="lastBackupText" style="margin-bottom: 10px;">Son Yedek: Henüz alınmadı</div>
         <div style="display: flex; gap: 8px;">
-          <button style="flex:1;" onclick="exportBackupData()">💾 JSON Yedeği İndir</button>
-          <button style="flex:1;" onclick="document.getElementById('fileUpload').click()">📂 Yedekten Geri Yükle</button>
+          <button style="flex:1;" onclick="exportBackupData()">JSON İndir</button>
+          <button style="flex:1;" onclick="document.getElementById('fileUpload').click()">Dosyadan Yükle</button>
           <input type="file" id="fileUpload" style="display: none;" onchange="handleFileImport(event)" />
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Alt Bar -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="switchTab('ozet', this)"><span class="nav-icon">📊</span>Özet</button>
     <button class="nav-btn" onclick="switchTab('yakit', this)"><span class="nav-icon">⛽</span>Yakıt</button>
@@ -547,10 +502,11 @@
     <button class="nav-btn" onclick="switchTab('yedek', this)"><span class="nav-icon">⚙️</span>Yedek</button>
   </nav>
 
-  <!-- MODAL: YAKIT / KM GİRİŞİ -->
+  <!-- MODAL: YAKIT / KM (DÜZENLEME DESTEKLİ) -->
   <div id="fuelModal" class="modal-backdrop">
     <div class="modal">
-      <div class="modal-header">Yakıt / KM Kaydı</div>
+      <div class="modal-header" id="fuelModalHeader">Yakıt / KM Kaydı</div>
+      <input type="hidden" id="modalFuelEditId" />
       <div class="form-group">
         <label>İşlem Türü</label>
         <select id="modalFuelType" onchange="toggleFuelTypeFields()">
@@ -584,7 +540,7 @@
           <input type="number" step="0.01" id="modalFuelLiters" />
         </div>
         <div class="form-group">
-          <label>Ödeme Aracı (Kart)</label>
+          <label>Ödeme Aracı</label>
           <select id="modalFuelCard"></select>
         </div>
         <div class="form-group">
@@ -598,10 +554,11 @@
     </div>
   </div>
 
-  <!-- MODAL: SERVİS & BAKIM -->
+  <!-- MODAL: SERVİS & BAKIM (DÜZENLEME DESTEKLİ) -->
   <div id="serviceModal" class="modal-backdrop">
     <div class="modal">
-      <div class="modal-header">Servis / Bakım Kaydı</div>
+      <div class="modal-header" id="serviceModalHeader">Servis / Bakım Kaydı</div>
+      <input type="hidden" id="modalServiceEditId" />
       <div class="form-group">
         <label>Tarih</label>
         <input type="date" id="modalServiceDate" />
@@ -611,7 +568,7 @@
         <input type="number" id="modalServiceKm" />
       </div>
       <div class="form-group">
-        <label>İşlem Başlığı / Açıklama</label>
+        <label>İşlem Başlığı</label>
         <input type="text" id="modalServiceTitle" placeholder="Örn: 1. Yıl Periyodik Bakımı" />
       </div>
       <div class="form-group">
@@ -634,7 +591,7 @@
           <input type="number" step="0.01" id="modalServiceCost" />
         </div>
         <div class="form-group">
-          <label>Ödeme Aracı (Kart)</label>
+          <label>Ödeme Aracı</label>
           <select id="modalServiceCard"></select>
         </div>
       </div>
@@ -649,10 +606,11 @@
     </div>
   </div>
 
-  <!-- MODAL: FİNANS & SABİT GİDER -->
+  <!-- MODAL: FİNANS (DÜZENLEME DESTEKLİ) -->
   <div id="financeModal" class="modal-backdrop">
     <div class="modal">
-      <div class="modal-header">Sabit Finans / Vergi Ekle</div>
+      <div class="modal-header" id="financeModalHeader">Finans / Vergi Ekle</div>
+      <input type="hidden" id="modalFinanceEditId" />
       <div class="form-group">
         <label>Kategori</label>
         <select id="modalFinanceCategory">
@@ -682,33 +640,162 @@
     </div>
   </div>
 
-  <!-- MODAL: KART YÖNETİMİ -->
+  <!-- MODAL: KART YÖNETİMİ & EKSTRE GÜNÜ -->
   <div id="cardManageModal" class="modal-backdrop">
     <div class="modal">
-      <div class="modal-header">Kart İsmi Düzenle</div>
+      <div class="modal-header">Kart & Ekstre Yönetimi</div>
       <div class="form-group">
         <label>Düzenlenecek Kart</label>
-        <select id="modalSelectCard" onchange="loadCardRenameField()"></select>
+        <select id="modalSelectCard" onchange="loadCardDetailsField()"></select>
       </div>
       <div class="form-group">
-        <label>Yeni Kart İsmi</label>
+        <label>Kart İsmi</label>
         <input type="text" id="modalCardNewName" />
+      </div>
+      <div class="form-group">
+        <label>Hesap Kesim Günü (1-31)</label>
+        <input type="number" min="1" max="31" id="modalCardCutDay" />
       </div>
       <div class="modal-actions">
         <button class="btn-danger" onclick="deleteSelectedCard()">Kartı Sil</button>
-        <button onclick="closeModal('cardManageModal')">Kapat</button>
-        <button class="btn-primary" onclick="saveCardRename()">İsmi Güncelle</button>
+        <button class="btn-outline" onclick="closeModal('cardManageModal')">Kapat</button>
+        <button class="btn-primary" onclick="saveCardDetails()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KAMPANYA YÖNETİMİ -->
+  <div id="campaignModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">Yeni Kampanya Tanımla</div>
+      <div class="form-group">
+        <label>Kampanya Başlığı</label>
+        <input type="text" id="modalCampTitle" placeholder="Örn: 4x750 TL Yakıta 150 TL Puan" />
+      </div>
+      <div class="form-group">
+        <label>Hedef Adım Sayısı (Örn: 4)</label>
+        <input type="number" id="modalCampTarget" value="4" />
+      </div>
+      <div class="form-group">
+        <label>Mevcut Tamamlanan Adım</label>
+        <input type="number" id="modalCampCurrent" value="0" />
+      </div>
+      <div class="form-group">
+        <label>Son Geçerlilik Tarihi</label>
+        <input type="date" id="modalCampDate" />
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeModal('campaignModal')">İptal</button>
+        <button class="btn-primary" onclick="saveCampaign()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DİNAMİK 4 LASTİK AYARI -->
+  <div id="tireModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">4 Lastik Basınç & Diş Ayarı</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label>Sol Ön (PSI)</label>
+          <input type="number" id="modalTireFLPsi" />
+        </div>
+        <div class="form-group">
+          <label>Sol Ön Diş (mm)</label>
+          <input type="number" step="0.1" id="modalTireFLMm" />
+        </div>
+        <div class="form-group">
+          <label>Sağ Ön (PSI)</label>
+          <input type="number" id="modalTireFRPsi" />
+        </div>
+        <div class="form-group">
+          <label>Sağ Ön Diş (mm)</label>
+          <input type="number" step="0.1" id="modalTireFRMm" />
+        </div>
+        <div class="form-group">
+          <label>Sol Arka (PSI)</label>
+          <input type="number" id="modalTireRLPsi" />
+        </div>
+        <div class="form-group">
+          <label>Sol Arka Diş (mm)</label>
+          <input type="number" step="0.1" id="modalTireRLMm" />
+        </div>
+        <div class="form-group">
+          <label>Sağ Arka (PSI)</label>
+          <input type="number" id="modalTireRRPsi" />
+        </div>
+        <div class="form-group">
+          <label>Sağ Arka Diş (mm)</label>
+          <input type="number" step="0.1" id="modalTireRRMm" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeModal('tireModal')">İptal</button>
+        <button class="btn-primary" onclick="saveTireModalData()">Kaydet</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Başlangıç Durumu & Veri Deposu
-    const defaultData = {
+    // --- AKILLI VERİ KURTARMA KÖPRÜSÜ (ÖNCEKİ TÜM VERİLERİ KURTARIR) ---
+    function restoreLegacyData() {
+      const keys = ['aracTakipData', 'carAppData', 'yakitTakipData', 'arac_verileri', 'otoTakip'];
+      for (const k of keys) {
+        const item = localStorage.getItem(k);
+        if (item) {
+          try {
+            const parsed = JSON.parse(item);
+            if (parsed && (parsed.fuels || parsed.yakitlar || parsed.services || parsed.giderler)) {
+              return normalizeLoadedData(parsed);
+            }
+          } catch(e){}
+        }
+      }
+      return null;
+    }
+
+    function normalizeLoadedData(data) {
+      return {
+        theme: data.theme || 'dark',
+        cards: data.cards || ['Bonus', 'Enpara', 'Nakit'],
+        cardMeta: data.cardMeta || { 'Bonus': { cutDay: 15 }, 'Enpara': { cutDay: 1 } },
+        campaigns: data.campaigns || [
+          { id: 1, title: 'Bonus 4x750 TL Yakıta 150 TL', target: 4, current: 2, expiry: '2026-10-31' }
+        ],
+        defaults: data.defaults || { station: 'Opet', card: 'Bonus' },
+        tirePressureCheck: data.tirePressureCheck || null,
+        tireData: data.tireData || {
+          fl: { psi: 34, mm: 6.8 },
+          fr: { psi: 34, mm: 6.8 },
+          rl: { psi: 32, mm: 7.1 },
+          rr: { psi: 32, mm: 7.1 }
+        },
+        lastBackupDate: data.lastBackupDate || null,
+        fuels: data.fuels || data.yakitlar || [],
+        services: data.services || data.bakimlar || [],
+        finances: data.finances || data.giderler || [],
+        reminders: data.reminders || data.hatirlaticilar || [
+          { id: 1, title: '2. Taksit MTV', date: '2026-07-31' },
+          { id: 2, title: 'Yıllık Periyodik Bakım', date: '2026-11-15' }
+        ]
+      };
+    }
+
+    let appData = restoreLegacyData() || {
       theme: 'dark',
       cards: ['Bonus', 'Enpara', 'Nakit'],
+      cardMeta: { 'Bonus': { cutDay: 15 }, 'Enpara': { cutDay: 1 } },
+      campaigns: [
+        { id: 1, title: 'Bonus 4x750 TL Yakıta 150 TL', target: 4, current: 2, expiry: '2026-10-31' }
+      ],
       defaults: { station: 'Opet', card: 'Bonus' },
       tirePressureCheck: null,
+      tireData: {
+        fl: { psi: 34, mm: 6.8 },
+        fr: { psi: 34, mm: 6.8 },
+        rl: { psi: 32, mm: 7.1 },
+        rr: { psi: 32, mm: 7.1 }
+      },
       lastBackupDate: null,
       fuels: [
         { id: 1, type: 'FUEL', date: '2026-08-15', km: 11200, station: 'Opet', amount: 1919.03, unitPrice: 81.80, liters: 23.46, card: 'Bonus', full: true },
@@ -728,16 +815,17 @@
       ]
     };
 
-    let appData = JSON.parse(localStorage.getItem('carAppData')) || defaultData;
     let currentFuelFilter = 'ALL';
     let fuelSearchQuery = '';
+    let trendChartInstance = null;
+    let pieChartInstance = null;
 
     function saveData() {
+      localStorage.setItem('aracTakipData', JSON.stringify(appData));
       localStorage.setItem('carAppData', JSON.stringify(appData));
       renderApp();
     }
 
-    // Tema Değiştirme
     function toggleTheme() {
       appData.theme = appData.theme === 'dark' ? 'light' : 'dark';
       document.body.setAttribute('data-theme', appData.theme);
@@ -745,12 +833,12 @@
     }
     document.body.setAttribute('data-theme', appData.theme || 'dark');
 
-    // Tab Değiştirme
     function switchTab(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(nb => nb.classList.remove('active'));
       document.getElementById(`tab-${tabId}`).classList.add('active');
       el.classList.add('active');
+      if (tabId === 'ozet') renderCharts();
     }
 
     function setServiceSubtab(tab) {
@@ -760,11 +848,9 @@
       document.getElementById('servicePanelTire').style.display = tab === 'TIRE' ? 'block' : 'none';
     }
 
-    // Modal Yönetimi
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // KM Mantık Doğrulaması
     function getMaxRegisteredKm() {
       let maxKm = 0;
       appData.fuels.forEach(f => { if(f.km > maxKm) maxKm = f.km; });
@@ -772,7 +858,7 @@
       return maxKm;
     }
 
-    // 45 Gün Kuralı & Hatırlatıcılar
+    // 45 Gün Kuralı Hatırlatıcılar
     function renderReminders() {
       const container = document.getElementById('reminderContainer');
       const now = new Date('2026-10-02');
@@ -780,9 +866,7 @@
 
       appData.reminders.forEach(r => {
         const diffDays = Math.ceil((new Date(r.date) - now) / (1000 * 60 * 60 * 24));
-        if (diffDays <= 45) {
-          upcoming.push({ ...r, diffDays });
-        }
+        if (diffDays <= 45) upcoming.push({ ...r, diffDays });
       });
 
       if (upcoming.length === 0) {
@@ -797,7 +881,7 @@
 
       if (top.diffDays <= 0) {
         colorClass = 'red';
-        textStatus = `Tarihi Geçti (${Math.abs(top.diffDays)} gün)`;
+        textStatus = `Tarihi Geçti (${Math.abs(top.diffDays)} gün gecikti)`;
       } else if (top.diffDays <= 15) {
         colorClass = 'orange';
       } else if (top.diffDays <= 30) {
@@ -830,18 +914,36 @@
       renderFuelList();
     }
 
-    // Yakıt / KM Modal Mantığı
-    function openFuelModal() {
-      document.getElementById('modalFuelDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modalFuelStation').value = appData.defaults.station || '';
-      
+    function openFuelModal(editId = null) {
+      document.getElementById('modalFuelEditId').value = editId || '';
+      document.getElementById('fuelModalHeader').innerText = editId ? 'Kaydı Düzenle' : 'Yakıt / KM Kaydı';
+
       const cardSelect = document.getElementById('modalFuelCard');
-      cardSelect.innerHTML = appData.cards.map(c => `<option value="${c}" ${c === appData.defaults.card ? 'selected':''}>${c}</option>`).join('');
-      
-      document.getElementById('modalFuelKm').value = '';
-      document.getElementById('modalFuelAmount').value = '';
-      document.getElementById('modalFuelUnitPrice').value = '';
-      document.getElementById('modalFuelLiters').value = '';
+      cardSelect.innerHTML = appData.cards.map(c => `<option value="${c}">${c}</option>`).join('');
+
+      if (editId) {
+        const item = appData.fuels.find(f => f.id === editId);
+        if (item) {
+          document.getElementById('modalFuelType').value = item.type;
+          document.getElementById('modalFuelDate').value = item.date;
+          document.getElementById('modalFuelKm').value = item.km;
+          document.getElementById('modalFuelStation').value = item.station || '';
+          document.getElementById('modalFuelAmount').value = item.amount || '';
+          document.getElementById('modalFuelUnitPrice').value = item.unitPrice || '';
+          document.getElementById('modalFuelLiters').value = item.liters || '';
+          document.getElementById('modalFuelCard').value = item.card || appData.defaults.card;
+          document.getElementById('modalFuelFull').checked = !!item.full;
+        }
+      } else {
+        document.getElementById('modalFuelDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('modalFuelStation').value = appData.defaults.station || '';
+        document.getElementById('modalFuelCard').value = appData.defaults.card;
+        document.getElementById('modalFuelKm').value = '';
+        document.getElementById('modalFuelAmount').value = '';
+        document.getElementById('modalFuelUnitPrice').value = '';
+        document.getElementById('modalFuelLiters').value = '';
+        document.getElementById('modalFuelFull').checked = true;
+      }
       toggleFuelTypeFields();
       openModal('fuelModal');
     }
@@ -860,6 +962,7 @@
     }
 
     function saveFuelEntry() {
+      const editId = document.getElementById('modalFuelEditId').value;
       const type = document.getElementById('modalFuelType').value;
       const date = document.getElementById('modalFuelDate').value;
       const km = parseInt(document.getElementById('modalFuelKm').value);
@@ -870,14 +973,14 @@
         return;
       }
 
-      if (km < maxKm) {
-        const confirmLower = confirm(`DİKKAT: Girdiğiniz KM (${km}), sistemdeki en yüksek KM'den (${maxKm}) daha düşük. Devam etmek istiyor musunuz?`);
+      if (!editId && km < maxKm) {
+        const confirmLower = confirm(`DİKKAT: Girdiğiniz KM (${km}), sistemdeki en yüksek KM'den (${maxKm}) daha düşük. Kaydetmek istediğinize emin misiniz?`);
         if (!confirmLower) return;
       }
 
-      if (type === 'KM') {
-        appData.fuels.push({ id: Date.now(), type: 'KM', date, km });
-      } else {
+      let payload = { id: editId ? parseInt(editId) : Date.now(), type, date, km };
+
+      if (type === 'FUEL') {
         const station = document.getElementById('modalFuelStation').value || 'Akaryakıt';
         const amount = parseFloat(document.getElementById('modalFuelAmount').value) || 0;
         const unitPrice = parseFloat(document.getElementById('modalFuelUnitPrice').value) || 0;
@@ -888,14 +991,20 @@
         appData.defaults.station = station;
         appData.defaults.card = card;
 
-        appData.fuels.push({ id: Date.now(), type: 'FUEL', date, km, station, amount, unitPrice, liters, card, full });
+        payload = { ...payload, station, amount, unitPrice, liters, card, full };
+      }
+
+      if (editId) {
+        const index = appData.fuels.findIndex(f => f.id === parseInt(editId));
+        if (index !== -1) appData.fuels[index] = payload;
+      } else {
+        appData.fuels.push(payload);
       }
 
       closeModal('fuelModal');
       saveData();
     }
 
-    // İki Dolum Arası Gerçek Tüketim Rozeti Mantığı
     function getConsumptionBadge(currentIndex, sortedFuels) {
       const current = sortedFuels[currentIndex];
       if (current.type !== 'FUEL' || !current.full) return null;
@@ -918,7 +1027,6 @@
     function renderFuelList() {
       const container = document.getElementById('fuelList');
       const selectedYear = document.getElementById('yearFilter').value;
-
       let list = [...appData.fuels].sort((a,b) => b.km - a.km);
 
       if (selectedYear !== 'ALL') {
@@ -951,7 +1059,10 @@
                   <div class="item-main">📍 ${item.km.toLocaleString()} km</div>
                   <div class="item-sub">${item.date} • Sayaç Kontrolü</div>
                 </div>
-                <button style="border:none; color:var(--danger);" onclick="deleteFuelItem(${item.id})">Sil</button>
+                <div style="display:flex; gap:6px;">
+                  <button class="btn-outline" style="font-size:0.75rem; padding:3px 8px;" onclick="openFuelModal(${item.id})">Düzenle</button>
+                  <button style="border:none; color:var(--danger);" onclick="deleteFuelItem(${item.id})">Sil</button>
+                </div>
               </div>
             </div>
           `;
@@ -974,7 +1085,8 @@
                 <div style="margin-top: 6px;">${consumptionBadge}</div>
               </div>
             </div>
-            <div style="display:flex; justify-content:flex-end; margin-top: 8px;">
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 10px;">
+              <button class="btn-outline" style="font-size:0.75rem; padding:3px 8px;" onclick="openFuelModal(${item.id})">Düzenle</button>
               <button style="border:none; color:var(--danger); font-size:0.8rem; padding:2px;" onclick="deleteFuelItem(${item.id})">Sil</button>
             </div>
           </div>
@@ -989,7 +1101,7 @@
       }
     }
 
-    // Servis & Bakım İşlemleri
+    // Servis & Bakım (Mekanik-Finans Çift Yönlü Köprü)
     let selectedChips = [];
     function toggleChip(el, name) {
       el.classList.toggle('selected');
@@ -1000,20 +1112,42 @@
       }
     }
 
-    function openServiceModal() {
-      document.getElementById('modalServiceDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modalServiceKm').value = '';
-      document.getElementById('modalServiceTitle').value = '';
-      document.getElementById('modalServiceCost').value = '';
-      document.getElementById('modalServiceWarrantyDate').value = '';
-      document.getElementById('modalServiceWarranty').checked = false;
-      toggleWarrantyField();
+    function openServiceModal(editId = null) {
+      document.getElementById('modalServiceEditId').value = editId || '';
+      document.getElementById('serviceModalHeader').innerText = editId ? 'Servis Kaydını Düzenle' : 'Servis / Bakım Kaydı';
 
       const cardSelect = document.getElementById('modalServiceCard');
-      cardSelect.innerHTML = appData.cards.map(c => `<option value="${c}" ${c === appData.defaults.card ? 'selected':''}>${c}</option>`).join('');
+      cardSelect.innerHTML = appData.cards.map(c => `<option value="${c}">${c}</option>`).join('');
 
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
       selectedChips = [];
+
+      if (editId) {
+        const item = appData.services.find(s => s.id === editId);
+        if (item) {
+          document.getElementById('modalServiceDate').value = item.date;
+          document.getElementById('modalServiceKm').value = item.km;
+          document.getElementById('modalServiceTitle').value = item.title;
+          document.getElementById('modalServiceCost').value = item.cost || '';
+          document.getElementById('modalServiceCard').value = item.card || appData.defaults.card;
+          document.getElementById('modalServiceWarranty').checked = !!item.warranty;
+          document.getElementById('modalServiceWarrantyDate').value = item.warrantyEnd || '';
+          selectedChips = item.parts ? [...item.parts] : [];
+          document.querySelectorAll('.chip').forEach(c => {
+            const name = c.innerText.replace('+', '').trim();
+            if (selectedChips.includes(name)) c.classList.add('selected');
+          });
+        }
+      } else {
+        document.getElementById('modalServiceDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('modalServiceKm').value = '';
+        document.getElementById('modalServiceTitle').value = '';
+        document.getElementById('modalServiceCost').value = '';
+        document.getElementById('modalServiceWarrantyDate').value = '';
+        document.getElementById('modalServiceWarranty').checked = false;
+        document.getElementById('modalServiceCard').value = appData.defaults.card;
+      }
+      toggleWarrantyField();
       openModal('serviceModal');
     }
 
@@ -1023,6 +1157,7 @@
     }
 
     function saveServiceEntry() {
+      const editId = document.getElementById('modalServiceEditId').value;
       const date = document.getElementById('modalServiceDate').value;
       const km = parseInt(document.getElementById('modalServiceKm').value);
       const title = document.getElementById('modalServiceTitle').value || 'Bakım & Onarım';
@@ -1036,8 +1171,9 @@
         return;
       }
 
-      appData.services.push({
-        id: Date.now(),
+      const serviceId = editId ? parseInt(editId) : Date.now();
+      const servicePayload = {
+        id: serviceId,
         date,
         km,
         title,
@@ -1046,7 +1182,14 @@
         card,
         warranty: isWarranty,
         warrantyEnd
-      });
+      };
+
+      if (editId) {
+        const sIndex = appData.services.findIndex(s => s.id === serviceId);
+        if (sIndex !== -1) appData.services[sIndex] = servicePayload;
+      } else {
+        appData.services.push(servicePayload);
+      }
 
       closeModal('serviceModal');
       saveData();
@@ -1068,7 +1211,7 @@
 
       container.innerHTML = list.map(item => {
         const warrantyBadge = item.warranty ? `<span class="badge badge-garanti">🛡️ Garanti (0 ₺)</span>` : '';
-        const partsText = item.parts.length > 0 ? `<div class="item-sub">Değişenler: ${item.parts.join(', ')}</div>` : '';
+        const partsText = item.parts && item.parts.length > 0 ? `<div class="item-sub">Değişenler: ${item.parts.join(', ')}</div>` : '';
         const warrantyEndText = item.warrantyEnd ? `<div class="item-sub">Garanti Bitiş: ${item.warrantyEnd}</div>` : '';
 
         return `
@@ -1076,7 +1219,7 @@
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div>
                 <div class="item-main">🔧 ${item.title}</div>
-                <div class="item-sub">${item.date} • ${item.km.toLocaleString()} km</div>
+                <div class="item-sub">${item.date} • ${item.km.toLocaleString()} km • ${item.card}</div>
                 ${partsText}
                 ${warrantyEndText}
               </div>
@@ -1085,7 +1228,8 @@
                 <div style="margin-top: 4px;">${warrantyBadge}</div>
               </div>
             </div>
-            <div style="display:flex; justify-content:flex-end; margin-top: 8px;">
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 10px;">
+              <button class="btn-outline" style="font-size:0.75rem; padding:3px 8px;" onclick="openServiceModal(${item.id})">Düzenle</button>
               <button style="border:none; color:var(--danger); font-size:0.8rem;" onclick="deleteServiceItem(${item.id})">Sil</button>
             </div>
           </div>
@@ -1100,8 +1244,33 @@
       }
     }
 
-    // Lastik Hava Kontrolü
-    function recordTirePressureCheck() {
+    // Lastik Yönetimi & 4 Tekerlek Dinamik Gösterimi
+    function openTireModal() {
+      const td = appData.tireData || { fl: {psi:34, mm:6.8}, fr: {psi:34, mm:6.8}, rl: {psi:32, mm:7.1}, rr: {psi:32, mm:7.1} };
+      document.getElementById('modalTireFLPsi').value = td.fl.psi;
+      document.getElementById('modalTireFLMm').value = td.fl.mm;
+      document.getElementById('modalTireFRPsi').value = td.fr.psi;
+      document.getElementById('modalTireFRMm').value = td.fr.mm;
+      document.getElementById('modalTireRLPsi').value = td.rl.psi;
+      document.getElementById('modalTireRLMm').value = td.rl.mm;
+      document.getElementById('modalTireRRPsi').value = td.rr.psi;
+      document.getElementById('modalTireRRMm').value = td.rr.mm;
+      openModal('tireModal');
+    }
+
+    function saveTireModalData() {
+      appData.tireData = {
+        fl: { psi: parseInt(document.getElementById('modalTireFLPsi').value)||34, mm: parseFloat(document.getElementById('modalTireFLMm').value)||6.8 },
+        fr: { psi: parseInt(document.getElementById('modalTireFRPsi').value)||34, mm: parseFloat(document.getElementById('modalTireFRMm').value)||6.8 },
+        rl: { psi: parseInt(document.getElementById('modalTireRLPsi').value)||32, mm: parseFloat(document.getElementById('modalTireRLMm').value)||7.1 },
+        rr: { psi: parseInt(document.getElementById('modalTireRRPsi').value)||32, mm: parseFloat(document.getElementById('modalTireRRMm').value)||7.1 }
+      };
+      appData.tirePressureCheck = new Date().toISOString().split('T')[0];
+      closeModal('tireModal');
+      saveData();
+    }
+
+    function quickUpdateTireCheck() {
       appData.tirePressureCheck = new Date().toISOString().split('T')[0];
       saveData();
     }
@@ -1113,35 +1282,81 @@
       if (!appData.tirePressureCheck) {
         badge.innerHTML = `<span class="badge" style="background:var(--warning); color:#fff;">Kontrol Gerekli</span>`;
         text.innerText = 'Son Kontrol: Henüz kayıt yok';
-        return;
-      }
-
-      const diffDays = Math.ceil((new Date('2026-10-02') - new Date(appData.tirePressureCheck)) / (1000 * 60 * 60 * 24));
-      text.innerText = `Son Kontrol: ${appData.tirePressureCheck} (${diffDays} gün önce)`;
-
-      if (diffDays > 30) {
-        badge.innerHTML = `<span class="badge" style="background:var(--warning); color:#fff;">⚠️ 30 Günü Geçti</span>`;
       } else {
-        badge.innerHTML = `<span class="badge" style="background:var(--success); color:#fff;">Basınç İyi</span>`;
+        const diffDays = Math.ceil((new Date('2026-10-02') - new Date(appData.tirePressureCheck)) / (1000 * 60 * 60 * 24));
+        text.innerText = `Son Kontrol: ${appData.tirePressureCheck} (${diffDays} gün önce)`;
+        if (diffDays > 30) {
+          badge.innerHTML = `<span class="badge" style="background:var(--warning); color:#fff;">⚠️ 30 Günü Geçti</span>`;
+        } else {
+          badge.innerHTML = `<span class="badge" style="background:var(--success); color:#fff;">Basınç İyi</span>`;
+        }
       }
+
+      const td = appData.tireData;
+      document.getElementById('tireDisplayGrid').innerHTML = `
+        <div class="tire-box">
+          <div class="metric-sub">Sol Ön</div>
+          <div class="item-main">${td.fl.psi} PSI</div>
+          <div class="metric-sub">${td.fl.mm} mm</div>
+        </div>
+        <div class="tire-box">
+          <div class="metric-sub">Sağ Ön</div>
+          <div class="item-main">${td.fr.psi} PSI</div>
+          <div class="metric-sub">${td.fr.mm} mm</div>
+        </div>
+        <div class="tire-box">
+          <div class="metric-sub">Sol Arka</div>
+          <div class="item-main">${td.rl.psi} PSI</div>
+          <div class="metric-sub">${td.rl.mm} mm</div>
+        </div>
+        <div class="tire-box">
+          <div class="metric-sub">Sağ Arka</div>
+          <div class="item-main">${td.rr.psi} PSI</div>
+          <div class="metric-sub">${td.rr.mm} mm</div>
+        </div>
+      `;
     }
 
-    // Finans & Sabit Masraflar
-    function openFinanceModal() {
-      document.getElementById('modalFinanceDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modalFinanceAmount').value = '';
+    // Finans & Kartlar & Kampanyalar
+    function openFinanceModal(editId = null) {
+      document.getElementById('modalFinanceEditId').value = editId || '';
+      document.getElementById('financeModalHeader').innerText = editId ? 'Harcamayı Düzenle' : 'Finans / Vergi Ekle';
+
       const cardSelect = document.getElementById('modalFinanceCard');
-      cardSelect.innerHTML = appData.cards.map(c => `<option value="${c}" ${c === appData.defaults.card ? 'selected':''}>${c}</option>`).join('');
+      cardSelect.innerHTML = appData.cards.map(c => `<option value="${c}">${c}</option>`).join('');
+
+      if (editId) {
+        const item = appData.finances.find(f => f.id === editId);
+        if (item) {
+          document.getElementById('modalFinanceCategory').value = item.category;
+          document.getElementById('modalFinanceDate').value = item.date;
+          document.getElementById('modalFinanceAmount').value = item.amount;
+          document.getElementById('modalFinanceCard').value = item.card;
+        }
+      } else {
+        document.getElementById('modalFinanceDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('modalFinanceAmount').value = '';
+        document.getElementById('modalFinanceCard').value = appData.defaults.card;
+      }
       openModal('financeModal');
     }
 
     function saveFinanceEntry() {
+      const editId = document.getElementById('modalFinanceEditId').value;
       const category = document.getElementById('modalFinanceCategory').value;
       const date = document.getElementById('modalFinanceDate').value;
       const amount = parseFloat(document.getElementById('modalFinanceAmount').value) || 0;
       const card = document.getElementById('modalFinanceCard').value;
 
-      appData.finances.push({ id: Date.now(), category, date, amount, card });
+      const payload = { id: editId ? parseInt(editId) : Date.now(), category, date, amount, card };
+
+      if (editId) {
+        const fIndex = appData.finances.findIndex(f => f.id === parseInt(editId));
+        if (fIndex !== -1) appData.finances[fIndex] = payload;
+      } else {
+        appData.finances.push(payload);
+      }
+
       closeModal('financeModal');
       saveData();
     }
@@ -1150,17 +1365,31 @@
       const container = document.getElementById('financeList');
       const selectedYear = document.getElementById('yearFilter').value;
 
-      let list = [...appData.finances].sort((a,b) => new Date(b.date) - new Date(a.date));
+      // Hem doğrudan sabit finans kayıtları hem de ücretli servis faturaları finans akışında görünür
+      let combined = [
+        ...appData.finances.map(f => ({ ...f, type: 'FINANCE' })),
+        ...appData.services.filter(s => !s.warranty && s.cost > 0).map(s => ({
+          id: s.id,
+          category: `🔧 Servis: ${s.title}`,
+          date: s.date,
+          amount: s.cost,
+          card: s.card,
+          type: 'SERVICE'
+        }))
+      ];
+
+      combined.sort((a,b) => new Date(b.date) - new Date(a.date));
+
       if (selectedYear !== 'ALL') {
-        list = list.filter(item => item.date.startsWith(selectedYear));
+        combined = combined.filter(item => item.date.startsWith(selectedYear));
       }
 
-      if (list.length === 0) {
+      if (combined.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding: 10px; color: var(--text-muted);">Gider kaydı yok.</div>`;
         return;
       }
 
-      container.innerHTML = list.map(item => `
+      container.innerHTML = combined.map(item => `
         <div class="list-item">
           <div>
             <div class="item-main">${item.category}</div>
@@ -1168,7 +1397,14 @@
           </div>
           <div style="text-align: right;">
             <div class="item-main">₺${item.amount.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</div>
-            <button style="border:none; color:var(--danger); font-size:0.75rem; padding:0;" onclick="deleteFinanceItem(${item.id})">Sil</button>
+            <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
+              ${item.type === 'FINANCE' ? `
+                <button class="btn-outline" style="font-size:0.75rem; padding:2px 6px;" onclick="openFinanceModal(${item.id})">Düzenle</button>
+                <button style="border:none; color:var(--danger); font-size:0.75rem; padding:0;" onclick="deleteFinanceItem(${item.id})">Sil</button>
+              ` : `
+                <span class="badge" style="background:var(--badge-neutral);">Bakım Sekmesinden</span>
+              `}
+            </div>
           </div>
         </div>
       `).join('');
@@ -1181,33 +1417,42 @@
       }
     }
 
-    // Kart Yönetimi & Senkronizasyon
+    // Kart Yönetimi & Ekstre Günleri
     function openCardManageModal() {
       const select = document.getElementById('modalSelectCard');
       select.innerHTML = appData.cards.map(c => `<option value="${c}">${c}</option>`).join('');
-      loadCardRenameField();
+      loadCardDetailsField();
       openModal('cardManageModal');
     }
 
-    function loadCardRenameField() {
-      document.getElementById('modalCardNewName').value = document.getElementById('modalSelectCard').value;
+    function loadCardDetailsField() {
+      const cardName = document.getElementById('modalSelectCard').value;
+      document.getElementById('modalCardNewName').value = cardName;
+      const meta = (appData.cardMeta && appData.cardMeta[cardName]) || { cutDay: 15 };
+      document.getElementById('modalCardCutDay').value = meta.cutDay || 15;
     }
 
-    function saveCardRename() {
+    function saveCardDetails() {
       const oldName = document.getElementById('modalSelectCard').value;
       const newName = document.getElementById('modalCardNewName').value.trim();
+      const cutDay = parseInt(document.getElementById('modalCardCutDay').value) || 15;
 
-      if (!newName || oldName === newName) {
-        closeModal('cardManageModal');
-        return;
+      if (!newName) return;
+
+      if (!appData.cardMeta) appData.cardMeta = {};
+
+      if (oldName !== newName) {
+        appData.cards = appData.cards.map(c => c === oldName ? newName : c);
+        if (appData.defaults.card === oldName) appData.defaults.card = newName;
+        appData.cardMeta[newName] = { cutDay };
+        delete appData.cardMeta[oldName];
+
+        appData.fuels.forEach(f => { if(f.card === oldName) f.card = newName; });
+        appData.services.forEach(s => { if(s.card === oldName) s.card = newName; });
+        appData.finances.forEach(g => { if(g.card === oldName) g.card = newName; });
+      } else {
+        appData.cardMeta[oldName] = { cutDay };
       }
-
-      appData.cards = appData.cards.map(c => c === oldName ? newName : c);
-      if (appData.defaults.card === oldName) appData.defaults.card = newName;
-
-      appData.fuels.forEach(f => { if(f.card === oldName) f.card = newName; });
-      appData.services.forEach(s => { if(s.card === oldName) s.card = newName; });
-      appData.finances.forEach(g => { if(g.card === oldName) g.card = newName; });
 
       closeModal('cardManageModal');
       saveData();
@@ -1217,6 +1462,7 @@
       const cardName = document.getElementById('modalSelectCard').value;
       if (confirm(`'${cardName}' kartını silmek istediğinize emin misiniz?`)) {
         appData.cards = appData.cards.filter(c => c !== cardName);
+        if (appData.cardMeta) delete appData.cardMeta[cardName];
         closeModal('cardManageModal');
         saveData();
       }
@@ -1232,16 +1478,157 @@
         appData.services.filter(s => s.card === card && (selectedYear === 'ALL' || s.date.startsWith(selectedYear))).forEach(s => total += (s.cost || 0));
         appData.finances.filter(g => g.card === card && (selectedYear === 'ALL' || g.date.startsWith(selectedYear))).forEach(g => total += (g.amount || 0));
 
+        const cutDay = (appData.cardMeta && appData.cardMeta[card] && appData.cardMeta[card].cutDay) ? appData.cardMeta[card].cutDay : '-';
+
         return `
           <div class="list-item">
-            <div>💳 ${card}</div>
+            <div>
+              <div class="item-main">💳 ${card}</div>
+              <div class="item-sub">Hesap Kesim Günü: Ayın ${cutDay}. günü</div>
+            </div>
             <div class="item-main">₺${total.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</div>
           </div>
         `;
       }).join('');
     }
 
-    // Özet (Dashboard) & TCO Hesapları
+    // Kampanyalar
+    function openCampaignModal() {
+      document.getElementById('modalCampTitle').value = '';
+      document.getElementById('modalCampTarget').value = '4';
+      document.getElementById('modalCampCurrent').value = '0';
+      document.getElementById('modalCampDate').value = '2026-10-31';
+      openModal('campaignModal');
+    }
+
+    function saveCampaign() {
+      const title = document.getElementById('modalCampTitle').value.trim();
+      const target = parseInt(document.getElementById('modalCampTarget').value) || 1;
+      const current = parseInt(document.getElementById('modalCampCurrent').value) || 0;
+      const expiry = document.getElementById('modalCampDate').value;
+
+      if (!title) return;
+
+      if (!appData.campaigns) appData.campaigns = [];
+      appData.campaigns.push({ id: Date.now(), title, target, current, expiry });
+      closeModal('campaignModal');
+      saveData();
+    }
+
+    function advanceCampaign(id) {
+      const camp = appData.campaigns.find(c => c.id === id);
+      if (camp && camp.current < camp.target) {
+        camp.current++;
+        saveData();
+      }
+    }
+
+    function deleteCampaign(id) {
+      if (confirm('Bu kampanyayı silmek istiyor musunuz?')) {
+        appData.campaigns = appData.campaigns.filter(c => c.id !== id);
+        saveData();
+      }
+    }
+
+    function renderCampaigns() {
+      const container = document.getElementById('campaignList');
+      if (!appData.campaigns || appData.campaigns.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:10px; color:var(--text-muted);">Aktif kampanya yok.</div>`;
+        return;
+      }
+
+      container.innerHTML = appData.campaigns.map(c => {
+        const pct = Math.min(100, Math.round((c.current / c.target) * 100));
+        return `
+          <div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--card-border);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="item-main" style="font-size:0.88rem;">${c.title}</div>
+              <span class="badge" style="background:var(--primary); color:#fff;">${c.current} / ${c.target} Adım</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="item-sub">Bitiş: ${c.expiry}</span>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-outline" style="font-size:0.75rem; padding:2px 8px;" onclick="advanceCampaign(${c.id})">+1 Dolum İlerle</button>
+                <button style="border:none; color:var(--danger); font-size:0.75rem;" onclick="deleteCampaign(${c.id})">Sil</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Chart.js Grafikleri
+    function renderCharts() {
+      const selectedYear = document.getElementById('yearFilter').value;
+      const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+      const monthlyData = new Array(12).fill(0);
+
+      const accumulateMonth = (list, dateField, amountField) => {
+        list.forEach(item => {
+          if (selectedYear === 'ALL' || item[dateField].startsWith(selectedYear)) {
+            const m = parseInt(item[dateField].split('-')[1]) - 1;
+            if (m >= 0 && m < 12) monthlyData[m] += (item[amountField] || 0);
+          }
+        });
+      };
+
+      accumulateMonth(appData.fuels, 'date', 'amount');
+      accumulateMonth(appData.services, 'date', 'cost');
+      accumulateMonth(appData.finances, 'date', 'amount');
+
+      const ctxTrend = document.getElementById('monthlyTrendChart').getContext('2d');
+      if (trendChartInstance) trendChartInstance.destroy();
+      trendChartInstance = new Chart(ctxTrend, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'Harcama (₺)',
+            data: monthlyData,
+            backgroundColor: '#38bdf8',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+
+      let fuelTot = 0, servTot = 0, finTot = 0;
+      appData.fuels.filter(f => selectedYear === 'ALL' || f.date.startsWith(selectedYear)).forEach(f => fuelTot += (f.amount || 0));
+      appData.services.filter(s => selectedYear === 'ALL' || s.date.startsWith(selectedYear)).forEach(s => servTot += (s.cost || 0));
+      appData.finances.filter(g => selectedYear === 'ALL' || g.date.startsWith(selectedYear)).forEach(g => finTot += (g.amount || 0));
+
+      const ctxPie = document.getElementById('categoryPieChart').getContext('2d');
+      if (pieChartInstance) pieChartInstance.destroy();
+      pieChartInstance = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+          labels: ['Yakıt', 'Bakım', 'Finans/Vergi'],
+          datasets: [{
+            data: [fuelTot, servTot, finTot],
+            backgroundColor: ['#38bdf8', '#10b981', '#f59e0b'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+
+    // Özet Paneli, TCO & Dinamik KM Tahmini
     function renderSummaryDashboard() {
       const selectedYear = document.getElementById('yearFilter').value;
 
@@ -1259,29 +1646,67 @@
       document.getElementById('breakdownService').innerText = `₺${serviceTotal.toLocaleString('tr-TR', {minimumFractionDigits: 2})}`;
       document.getElementById('breakdownFinance').innerText = `₺${financeTotal.toLocaleString('tr-TR', {minimumFractionDigits: 2})}`;
 
-      // Kilometre ve TCO Hesaplaması
-      let allKms = [];
-      appData.fuels.forEach(f => { if(f.km) allKms.push(f.km); });
-      appData.services.forEach(s => { if(s.km) allKms.push(s.km); });
+      let entries = [];
+      appData.fuels.forEach(f => { if(f.km) entries.push({ km: f.km, date: f.date }); });
+      appData.services.forEach(s => { if(s.km) entries.push({ km: s.km, date: s.date }); });
 
-      if (allKms.length > 0) {
-        allKms.sort((a,b) => a - b);
-        const minKm = allKms[0];
-        const maxKm = allKms[allKms.length - 1];
-        const distanceDelta = maxKm - minKm;
+      if (entries.length > 0) {
+        entries.sort((a,b) => a.km - b.km);
+        const minEntry = entries[0];
+        const maxEntry = entries[entries.length - 1];
+        const distanceDelta = maxEntry.km - minEntry.km;
 
-        document.getElementById('currentKmMetric').innerText = `${maxKm.toLocaleString()} km`;
+        document.getElementById('currentKmMetric').innerText = `${maxEntry.km.toLocaleString()} km`;
 
         if (distanceDelta > 0) {
           const tco = (grandTotal / distanceDelta).toFixed(2);
           document.getElementById('tcoSubText').innerText = `Yürütme Maliyeti: ₺${tco} / km (Kapsanan: ${distanceDelta.toLocaleString()} km)`;
-        } else {
-          document.getElementById('tcoSubText').innerText = `Yürütme Maliyeti: Tek kayıt mevcut`;
-        }
 
-        // Aylık Ortalama KM Tahmini
-        document.getElementById('kmEstimateSubText').innerText = `Toplam izlenen: ${distanceDelta.toLocaleString()} km`;
+          // Dinamik Aylık & Yıllık Tahmin
+          const days = Math.max(1, Math.ceil((new Date(maxEntry.date) - new Date(minEntry.date)) / (1000 * 60 * 60 * 24)));
+          const monthlyEstimate = Math.round((distanceDelta / days) * 30.4);
+          const yearlyEstimate = Math.round((distanceDelta / days) * 365);
+          document.getElementById('kmEstimateSubText').innerText = `Ayda ortalama: ~${monthlyEstimate.toLocaleString()} km • Yılda tahmini: ~${yearlyEstimate.toLocaleString()} km`;
+        } else {
+          document.getElementById('tcoSubText').innerText = `Yürütme Maliyeti: Tek sayaç kaydı mevcut`;
+          document.getElementById('kmEstimateSubText').innerText = `En az 2 farklı KM kaydı bekleniyor...`;
+        }
       }
+    }
+
+    // Ekspertiz & Satış Özeti Raporu Oluşturucu
+    function copyInspectionReport() {
+      const maxKm = getMaxRegisteredKm();
+      let report = `🚗 ARAÇ SAĞLIK, SERVİS VE EKSPERTİZ ÖZETİ\n`;
+      report += `---------------------------------------------------\n`;
+      report += `Güncel Kilometre: ${maxKm.toLocaleString()} km\n`;
+      report += `Rapor Tarihi: 2026-10-02\n\n`;
+
+      report += `🔧 YAPILAN BAKIM VE DEĞİŞEN PARÇALAR:\n`;
+      if (appData.services.length === 0) {
+        report += `- Kayıtlı servis işlemi bulunmuyor.\n`;
+      } else {
+        [...appData.services].sort((a,b) => b.km - a.km).forEach(s => {
+          const status = s.warranty ? '[GARANTİ KAPSAMINDA]' : `₺${s.cost.toLocaleString('tr-TR')}`;
+          report += `• ${s.date} | ${s.km.toLocaleString()} km | ${s.title} (${status})\n`;
+          if (s.parts && s.parts.length > 0) report += `  Değişenler: ${s.parts.join(', ')}\n`;
+        });
+      }
+
+      report += `\n🛞 LASTİK VE YÜRÜYEN AKSAM DURUMU:\n`;
+      const td = appData.tireData;
+      report += `• Sol Ön: ${td.fl.psi} PSI (${td.fl.mm} mm) | Sağ Ön: ${td.fr.psi} PSI (${td.fr.mm} mm)\n`;
+      report += `• Sol Arka: ${td.rl.psi} PSI (${td.rl.mm} mm) | Sağ Arka: ${td.rr.psi} PSI (${td.rr.mm} mm)\n`;
+      report += `• Son Basınç Kontrolü: ${appData.tirePressureCheck || 'Kayıt Yok'}\n`;
+
+      report += `---------------------------------------------------\n`;
+      report += `Bu döküm Araç Yönetim Sistemi tarafından otomatik oluşturulmuştur.`;
+
+      navigator.clipboard.writeText(report).then(() => {
+        alert('Ekspertiz ve servis raporu panoya kopyalandı!');
+      }).catch(() => {
+        alert('Panoya kopyalanamadı, lütfen izinleri kontrol edin.');
+      });
     }
 
     // Yedekleme & Panodan Yapıştır
@@ -1290,7 +1715,7 @@
         const text = await navigator.clipboard.readText();
         document.getElementById('aiJsonInput').value = text;
       } catch (err) {
-        alert('Panoya erişilemedi. Lütfen metin kutusuna uzun basıp elle yapıştırın.');
+        alert('Panoya doğrudan erişilemedi. Lütfen metin kutusuna basılı tutup yapıştırın.');
       }
     }
 
@@ -1302,11 +1727,13 @@
         if (parsed.fuels) appData.fuels = parsed.fuels;
         if (parsed.services) appData.services = parsed.services;
         if (parsed.finances) appData.finances = parsed.finances;
+        if (parsed.campaigns) appData.campaigns = parsed.campaigns;
+        if (parsed.tireData) appData.tireData = parsed.tireData;
         saveData();
-        alert('Veriler başarıyla içe aktarıldı.');
+        alert('Veriler başarıyla aktarıldı.');
         document.getElementById('aiJsonInput').value = '';
       } catch(e) {
-        alert('Geçersiz JSON formatı.');
+        alert('Geçersiz JSON verisi.');
       }
     }
 
@@ -1328,23 +1755,24 @@
       const reader = new FileReader();
       reader.onload = function(event) {
         try {
-          appData = JSON.parse(event.target.result);
+          appData = normalizeLoadedData(JSON.parse(event.target.result));
           saveData();
-          alert('Yedek başarıyla yüklendi.');
+          alert('Yedek dosyasından veriler başarıyla yüklendi.');
         } catch (err) {
-          alert('Dosya okunamadı veya format geçersiz.');
+          alert('Dosya formatı okunamadı.');
         }
       };
       reader.readAsText(file);
     }
 
-    // Genel Render Döngüsü
     function renderApp() {
       renderReminders();
       renderSummaryDashboard();
+      renderCharts();
       renderFuelList();
       renderPartsList();
       renderTirePanel();
+      renderCampaigns();
       renderFinanceList();
       renderCardSummary();
       if (appData.lastBackupDate) {
@@ -1352,7 +1780,7 @@
       }
     }
 
-    // İlk Çalıştırma
+    // Uygulamayı Başlat
     renderApp();
   </script>
 </body>
