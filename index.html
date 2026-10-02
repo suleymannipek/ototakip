@@ -623,7 +623,7 @@
     </div>
   </main>
 
-  <!-- MODALLAR (KART, RAPOR, EKSKERTİZ vb.) -->
+  <!-- MODALLAR -->
   <div id="cardStatementModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3 hidden">
     <div class="custom-card max-w-sm w-full rounded-2xl p-4 space-y-3 border border-purple-700/60 shadow-2xl max-h-[92vh] flex flex-col">
       <div class="flex justify-between items-center border-b border-slate-700/50 pb-2 shrink-0">
@@ -945,7 +945,7 @@
     </div>
   </div>
 
-  <div id="expenseModal" class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center hidden">
+  <div id="expenseModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden">
     <div class="custom-card w-full max-w-md rounded-t-2xl p-4 border-t max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
         <h3 id="expModalTitle" class="font-bold text-xs">🛠️ Yeni Gider & Servis Kaydı</h3>
@@ -1044,7 +1044,7 @@
     </div>
   </div>
 
-  <!-- ALT NAVİGASYON (SİMGELER VE 5 SEKME DÜZENİ) -->
+  <!-- ALT NAVİGASYON -->
   <nav class="fixed bottom-0 left-0 w-full backdrop-blur-xl border-t z-40 pb-1.5">
     <div class="flex justify-around items-center max-w-md mx-auto pt-1.5">
       <button onclick="switchTab('dashboard')" id="navDashboard" class="flex flex-col items-center py-1 px-2.5 rounded-xl bg-blue-600/20 text-cyan-500 font-bold"><span class="text-base">📊</span><span class="text-[9px] mt-0.5">Özet</span></button>
@@ -1152,7 +1152,9 @@
       document.getElementById("stmtCardIcon").innerText = isCash ? "💵" : "💳";
       document.getElementById("stmtCardTitle").innerText = cardName;
       document.getElementById("stmtAddRewardBtn").classList.toggle("hidden", isCash);
-      document.getElementById("btnDeleteCurrentCard").classList.toggle("hidden", isCash);
+      
+      const delBtnModal = document.getElementById("btnDeleteCurrentCardModal");
+      if (delBtnModal) delBtnModal.classList.toggle("hidden", isCash);
 
       const activeF = fuels.filter(f => (f.paymentMethod || "Nakit") === cardName);
       const activeE = expenses.filter(e => (e.paymentMethod || "Nakit") === cardName);
@@ -1392,7 +1394,6 @@
       
       yearSelect.innerHTML = ""; 
       
-      // 10. Madde Kuralı: Yıl seçimine "Tüm Zamanlar" eklendi
       const optAll = document.createElement("option"); 
       optAll.value = "all"; 
       optAll.innerText = "Tüm Zamanlar"; 
@@ -1467,7 +1468,6 @@
       const dateVal = document.getElementById("mOdoDate").value;
       const noteVal = document.getElementById("mOdoNote").value.trim() || "Manuel KM";
 
-      // 8. Madde Kuralı: KM Mantık Doğrulaması
       const maxReg = getLatestVehicleKm();
       if (!editId && kmVal < maxReg) {
         if (!confirm(`⚠️ Girdiğiniz KM (${kmVal}), sistemdeki kayıtlı en yüksek KM'den (${maxReg}) daha düşük. Emin misiniz?`)) return;
@@ -1569,7 +1569,6 @@
           const meta = fuelDistMap[item.id];
           const unitPrice = (item.total / item.liters).toFixed(2);
           
-          // 3. Madde Kuralı: İki Dolum Arası Gerçek Tüketim Rozeti (L/100km)
           let consumptionBadge = "";
           if (item.consumption && item.isFull) {
             consumptionBadge = `<span class="bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-extrabold px-1.5 py-0.5 rounded text-[10px] ml-1">⛽ ${item.consumption} L/100km</span>`;
@@ -1812,7 +1811,6 @@
         const isExp = expandedExpenses.has(item.id);
         const isFree = (item.amount === 0 || item.amount === "0");
 
-        // 5. Madde Kuralı: Giderlerde "🛡️ Garanti Kapsamında (0 ₺)" rozeti
         const garantiRozet = isFree ? `<span class="bg-emerald-950 text-emerald-400 border border-emerald-800/50 text-[9px] font-bold px-1.5 py-0.5 rounded">🛡️ Garanti Kapsamında (0 ₺)</span>` : '';
 
         card.innerHTML = `
@@ -1865,7 +1863,6 @@
       renderMaintenancePartsList();
     }
 
-    // 10. Madde Kuralı: Bakım Sekmesi İçinde Parça & Değişenler Paneli
     function renderMaintenancePartsList() {
       const container = document.getElementById("maintenancePartsList");
       if (!container) return;
@@ -1894,7 +1891,6 @@
       });
     }
 
-    // 1. Madde Kuralı: 45 Gün Hatırlatıcı Kuralı & Kademeli Renk Skalası
     function calculateSmartReminders() {
       const now = new Date(); 
       const currentKm = getLatestVehicleKm(); 
@@ -1916,7 +1912,6 @@
           mSub = mDays<=0 ? "1 Yıl Doldu" : "KM Doldu"; 
         } else { 
           mText = `${mDays} gün kaldı`; 
-          // 45 gün kademeli renk skalası
           if (mDays <= 15) mColor = "text-rose-400 font-black";
           else if (mDays <= 30) mColor = "text-amber-400 font-bold";
           else mColor = "text-emerald-400 font-bold";
@@ -1966,7 +1961,6 @@
       }
       reminders.push({ id: 'trafik', name: '📑 Sigorta', days: tsD, text: tsT, sub: tsS, color: tsC });
 
-      // 45 gün filtresi
       const eligible = reminders.filter(r => r.days <= 45);
       const mainCard = document.getElementById("mainDashboardReminderCard");
       const strip = document.getElementById("collapsibleReminderStrip");
@@ -2423,13 +2417,12 @@
       document.getElementById("repAvgCons").innerText = vcL.length ? `${(vcL.reduce((a,b)=>a+b,0)/vcL.length).toFixed(2)} L/100km` : "-- L/100km";
     }
 
-    // 2. Madde Kuralı: Panodan Hızlı Yapıştır (📋) Butonu Destekli AI Aktarım
     async function pasteFromClipboard() {
       try {
         const text = await navigator.clipboard.readText();
         document.getElementById("aiDataImportInput").value = text;
       } catch (err) {
-        alert("Panodan okuma izni alınamadı. Kutuya uzun basarak yapıştırabilirsiniz.");
+        alert("Panodan okuma izni alınamadı.");
       }
     }
 
@@ -2515,7 +2508,6 @@
       const sbd = cf.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
       let currentAvgCons = null;
 
-      // 7. Madde Kuralı: Yıllık / Aylık Ortalama Kilometre Kartı Hesabı
       if (sbd.length >= 2) {
         let dK = sbd[sbd.length - 1].km - sbd[0].km; 
         document.getElementById("statTotalDistance").innerText = `Mesafe: ${dK > 0 ? dK.toLocaleString('tr-TR') : 0} km`; 
@@ -2592,7 +2584,6 @@
       const id = document.getElementById("fId").value || Date.now().toString(); 
       const kmVal = parseFloat(document.getElementById("fKm").value);
 
-      // 8. Madde Kuralı: KM Mantık Doğrulaması
       const maxReg = getLatestVehicleKm();
       if (!document.getElementById("fId").value && kmVal < maxReg) {
         if (!confirm(`⚠️ Girdiğiniz KM (${kmVal}), kayıtlı en yüksek KM'den (${maxReg}) düşük. Emin misiniz?`)) return;
@@ -2679,7 +2670,6 @@
     function openChangelogModal() { document.getElementById("changelogModal").classList.remove("hidden"); }
     function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
 
-    // 5 Sekme Mimarisi
     function switchTab(tab) { 
       ["dashboard", "fuel", "expenses", "tires", "backup"].forEach(t => { 
         const e = document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1)); 
@@ -2700,7 +2690,6 @@
       } 
     }
 
-    // 9. Madde Kuralı: Son Yedekleme Zamanı Takibi
     function exportJSON() { 
       const nowStr = new Date().toLocaleString('tr-TR');
       lastBackupTimestamp = nowStr;
@@ -2761,4 +2750,3 @@
   </script>
 </body>
 </html>
-
